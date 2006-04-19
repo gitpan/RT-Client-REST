@@ -97,7 +97,7 @@ sub _rt_content_to_exception {
 package RT::Client::REST;
 use vars qw/$VERSION/;
 
-$VERSION = 0.03;
+$VERSION = 0.04;
 
 use strict;
 use warnings;
@@ -177,7 +177,7 @@ sub edit {
         content => form_compose(\@forms),
     });
 
-    print $r->content;
+    return;
 }
 
 sub create { shift->edit(@_, objects => ['new']) }
@@ -206,11 +206,11 @@ sub comment {
         },
     ]]);
 
-    my $r = $self->_submit("ticket/comment/$ticket_id", {
+    $self->_submit("ticket/comment/$ticket_id", {
         content => $text,
     });
 
-    return $r->content;
+    return;
 }
 
 sub correspond { shift->comment(@_, comment_action => 'correspond') }
@@ -221,8 +221,8 @@ sub merge_tickets {
     my %opts = @_;
     my ($src, $dst) = map { $self->_valid_numeric_ticket_id($_) }
         @opts{qw(src dst)};
-    my $r = $self->_submit("ticket/merge/$src", { into => $dst});
-    print $r->content;
+    $self->_submit("ticket/merge/$src", { into => $dst});
+    return;
 }
 
 sub link_tickets {
@@ -234,14 +234,14 @@ sub link_tickets {
     my $ltype = $self->_valid_link_type(delete($opts{link_type}));
     my $del = (exists($opts{'unlink'}) ? 1 : '');
 
-    my $r = $self->_submit("ticket/link", {
+    $self->_submit("ticket/link", {
         id  => $src,
         rel => $ltype,
         to  => $dst,
         del => $del,
     });
 
-    print $r->content;
+    return;
 }
 
 sub unlink_tickets { shift->link_tickets(@_, unlink => 1) }
@@ -492,7 +492,7 @@ to implement some RT interactions from my application, but did not feel that
 invoking a shell command is appropriate.  Thus, I took B<rt> tool, written
 by Abhijit Menon-Sen, and converted it to an object-oriented Perl module.
 
-As of this writing (version 0.03), B<RT::Client::REST> is missing a lot of
+As of this writing (version 0.04), B<RT::Client::REST> is missing a lot of
 things that B<rt> has.  It does not support attachments, CCs, BCCs, and
 probably other things.  B<RT::Client::REST> does not retrieve forms from
 RT server, which is either good or bad, depending how you look at it.  More
@@ -715,7 +715,7 @@ Implement /usr/bin/rt using this RT::Client::REST.
 
 =head1 VERSION
 
-This is version 0.03 of B<RT::Client::REST>.  B</usr/bin/rt> shipped with
+This is version 0.04 of B<RT::Client::REST>.  B</usr/bin/rt> shipped with
 RT 3.4.5 is version 0.02, so the logical version continuation is to have
 one higher.
 
