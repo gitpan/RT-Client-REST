@@ -1,0 +1,6 @@
+Revision history for Perl module RT::Client::REST
+
+0.03    Wed Apr 19 2006 "Dmitri Tikhonov" <dtikhonov@vonage.com>
+  This is the initial release.
+
+# vim:sts=2:sw=2:et:ft=changelog:
