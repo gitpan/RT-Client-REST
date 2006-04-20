@@ -1,9 +1,10 @@
 Revision history for Perl module RT::Client::REST
 
+0.05    Thu Apr 20 2006 "Dmitri Tikhonov" <dtikhonov@vonage.com>
+  * Added RT::Client::REST::CouldNotCreateObjectException
+
 0.04    Wed Apr 19 2006 "Dmitri Tikhonov" <dtikhonov@vonage.com>
-  ! REST.pm
-    * Removed old print statements
-    * Upped $VERSION to 0.04
+  * Removed old print statements
 
 0.03    Wed Apr 19 2006 "Dmitri Tikhonov" <dtikhonov@vonage.com>
   This is the initial release.

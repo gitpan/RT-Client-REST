@@ -57,6 +57,11 @@ use Exception::Class (
         description => 'One or more of the specified objects was not found',
     },
 
+    'RT::Client::REST::CouldNotCreateObjectException' => {
+        isa         => 'RT::Client::REST::RTException',
+        description => 'Object could not be created',
+    },
+
     'RT::Client::REST::AuthenticationFailureException'  => {
         isa         => 'RT::Client::REST::RTException',
         description => "Incorrect username or password",
@@ -79,6 +84,8 @@ sub _rt_content_to_exception {
 
     if ($content =~ /not found/) {
         return 'RT::Client::REST::ObjectNotFoundException';
+    } elsif ($content =~ /not create/) {
+        return 'RT::Client::REST::CouldNotCreateObjectException';
     } else {
         return 'RT::Client::REST::UnknownRTException';
     }
@@ -97,7 +104,7 @@ sub _rt_content_to_exception {
 package RT::Client::REST;
 use vars qw/$VERSION/;
 
-$VERSION = 0.04;
+$VERSION = 0.05;
 
 use strict;
 use warnings;
@@ -176,6 +183,16 @@ sub edit {
     my $r = $self->_submit('edit', {
         content => form_compose(\@forms),
     });
+
+    # This seems to be a bug on the server side: returning 200 Ok when
+    # ticket creation (for instance) fails.  We check it here:
+    if ($r->content =~ /not/) {
+        RT::Client::REST::Exception->_rt_content_to_exception($r->content)
+        ->throw(
+            code    => $r->code,
+            message => "RT server returned this error: " .  $r->content,
+        );
+    }
 
     return;
 }
@@ -492,7 +509,7 @@ to implement some RT interactions from my application, but did not feel that
 invoking a shell command is appropriate.  Thus, I took B<rt> tool, written
 by Abhijit Menon-Sen, and converted it to an object-oriented Perl module.
 
-As of this writing (version 0.04), B<RT::Client::REST> is missing a lot of
+As of this writing (version 0.05), B<RT::Client::REST> is missing a lot of
 things that B<rt> has.  It does not support attachments, CCs, BCCs, and
 probably other things.  B<RT::Client::REST> does not retrieve forms from
 RT server, which is either good or bad, depending how you look at it.  More
@@ -645,6 +662,10 @@ RT::Client::REST::ObjectNotFoundException
 
 =item
 
+RT::Client::REST::CouldNotCreateObjectException
+
+=item
+
 RT::Client::REST::AuthenticationFailureException
 
 =item
@@ -715,7 +736,7 @@ Implement /usr/bin/rt using this RT::Client::REST.
 
 =head1 VERSION
 
-This is version 0.04 of B<RT::Client::REST>.  B</usr/bin/rt> shipped with
+This is version 0.05 of B<RT::Client::REST>.  B</usr/bin/rt> shipped with
 RT 3.4.5 is version 0.02, so the logical version continuation is to have
 one higher.
 
