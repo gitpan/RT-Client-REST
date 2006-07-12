@@ -1,5 +1,11 @@
 Revision history for Perl module RT::Client::REST
 
+0.06    Wed Jul 12 2006 "Dmitri Tikhonov" <dtikhonov@vonage.com>
+  * Method 'create' now returns numeric ID of the new object.
+  * RT::Interface::REST is no longer a requirement.  If it is not
+    installed, embedded copy of auxiliary methods is used.
+  * Added tests.
+
 0.05    Thu Apr 20 2006 "Dmitri Tikhonov" <dtikhonov@vonage.com>
   * Added RT::Client::REST::CouldNotCreateObjectException
 
