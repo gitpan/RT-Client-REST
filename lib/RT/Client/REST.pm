@@ -1,4 +1,4 @@
-# $Id$
+# $Id: REST.pm 5 2006-07-22 21:10:23Z dmitri $
 # RT::Client::REST
 #
 # Dmitri Tikhonov <dtikhonov@vonage.com>
@@ -113,7 +113,7 @@ use vars qw(@EXPORT @ISA);
 @ISA = qw(Exporter);
 @EXPORT = qw(expand_list form_parse form_compose vpush vsplit);
 
-my $field = '[a-zA-Z][a-zA-Z0-9_-]*';
+my $field = '(?:[a-zA-Z][a-zA-Z0-9_-]*|CF-[a-zA-Z0-9_ -]*)';
 
 sub expand_list {
     my ($list) = @_;
@@ -323,7 +323,7 @@ use strict;
 use warnings;
 
 use vars qw/$VERSION/;
-$VERSION = 0.06;
+$VERSION = '0.11';
 
 # If RT::Interface::REST, use it.  Otherwise, use local copy.
 eval { require RT::Interface::REST };

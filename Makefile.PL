@@ -2,7 +2,7 @@ use ExtUtils::MakeMaker;
 
 WriteMakefile(
     NAME            => 'RT::Client::REST',
-    VERSION_FROM    => 'REST.pm',
+    VERSION_FROM    => 'lib/RT/Client/REST.pm',
     PREREQ_PM       => {
                         'Error'                 => 0,
                         'Exception::Class'      => 0,
