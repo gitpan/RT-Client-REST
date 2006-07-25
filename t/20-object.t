@@ -1,12 +1,12 @@
 use strict;
 use warnings;
 
-use Test::More tests => 10;
+use Test::More tests => 11;
 use Test::Exception;
 
 use constant METHODS => (
     'new', 'to_form', 'from_form', '_generate_methods', 'store', 'retrieve',
-    'param', 'rt',
+    'param', 'rt', 'cf',
 );
 
 BEGIN {

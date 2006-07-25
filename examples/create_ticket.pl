@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# show_ticket.pl -- retrieve an RT ticket.
+# create_ticket.pl -- create an RT ticket.
 
 use strict;
 use warnings;
@@ -9,7 +9,7 @@ use RT::Client::REST;
 use RT::Client::REST::Ticket;
 
 unless (@ARGV >= 3) {
-    die "Usage: $0 username password ticket_id\n";
+    die "Usage: $0 username password queue subject\n";
 }
 
 my $rt = RT::Client::REST->new(
@@ -20,8 +20,9 @@ my $rt = RT::Client::REST->new(
 
 my $ticket = RT::Client::REST::Ticket->new(
     rt  => $rt,
-    id  => shift(@ARGV),
-)->retrieve;
+    queue   => shift(@ARGV),
+    subject => shift(@ARGV),
+)->store;
 
 use Data::Dumper;
 print Dumper($ticket);

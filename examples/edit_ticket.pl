@@ -13,7 +13,7 @@ unless (@ARGV >= 3) {
 }
 
 my $rt = RT::Client::REST->new(
-    server  => 'http://rt.cpan.org',
+    server  => ($ENV{RTSERVER} || 'http://rt.cpan.org'),
     username=> shift(@ARGV),
     password=> shift(@ARGV),
 );

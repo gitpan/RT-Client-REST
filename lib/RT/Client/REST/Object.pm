@@ -1,6 +1,41 @@
-# $Id: Object.pm 4 2006-07-22 21:02:27Z dmitri $
+# $Id: Object.pm 14 2006-07-25 18:01:44Z dmitri $
 
 package RT::Client::REST::Object;
+
+=head1 NAME
+
+RT::Client::REST::Object -- base class for RT objects.
+
+=head1 SYNOPSIS
+
+  # Create a new type
+  package RT::Client::REST::MyType;
+
+  use base qw(RT::Client::REST::Object);
+
+  sub _attributes {{
+    myattribute => {
+      validation => {
+        type => SCALAR,
+      },
+    },
+  }}
+
+  sub rt_type { "mytype" }
+
+  1;
+
+=head1 DESCRIPTION
+
+The RT::Client::REST::Object module is a superclass providing a whole
+bunch of class and object methods in order to streamline the development
+of RT's REST client interface.
+
+=head1 METHODS
+
+=over 2
+
+=cut
 
 use strict;
 use warnings;
@@ -10,6 +45,12 @@ $VERSION = 0.01;
 
 use Params::Validate;
 use RT::Client::REST::Object::Exception 0.01;
+
+=item new
+
+Constructor
+
+=cut
 
 sub new {
     my $class = shift;
@@ -27,6 +68,28 @@ sub new {
 
     return $self;
 }
+
+=item _generate_methods
+
+This class method generates accessors and mutators based on
+B<_attributes> method which your class should provide.  For items
+that are lists, 'add_' and 'delete_' methods are created.  For instance,
+the following two attributes specified in B<_attributes> will generate
+methods 'creator', 'cc', 'add_cc', and 'delete_cc':
+
+  creator => {
+    validation => { type => SCALAR },
+  },
+  cc => {
+    list => 1,
+    validation => { type => ARRAYREF },
+  },
+
+Note that accessors/mutators working with 'list' attributes accept
+and return array references, whereas convenience methods 'add_*' and
+'delete_*' accept lists of items.
+
+=cut
 
 sub _generate_methods {
     my $class = shift;
@@ -104,13 +167,23 @@ sub _generate_methods {
     }
 }
 
-# Mark an attribute as dirty.
+=item _mark_dirty($attrname)
+
+Mark an attribute as dirty.
+
+=cut
+
 sub _mark_dirty {
     my ($self, $attr) = @_;
     $self->{__dirty}{$attr} = 1;
 }
 
-# Return the list of dirty attributes.
+=item _dirty
+
+Return the list of dirty attributes.
+
+=cut
+
 sub _dirty {
     my $self = shift;
 
@@ -120,6 +193,15 @@ sub _dirty {
 
     return;
 }
+
+=item to_form($all)
+
+Convert the object to 'form' (used by REST protocol).  This is done based
+on B<_attributes> method.  If C<$all> is true, create a form from all of
+the object's attributes, otherwise use only dirty (see B<_dirty> method)
+attributes.  Defaults to the latter.
+
+=cut
 
 sub to_form {
     my ($self, $all) = @_;
@@ -141,8 +223,18 @@ sub to_form {
         $hash{$rest_name} = $value;
     }
 
+    for my $cf ($self->cf) {
+        $hash{'CF-' . $cf} = $self->cf($cf);
+    }
+
     return \%hash;
 }
+
+=item from_form
+
+Set object's attributes from form received from RT server.
+
+=cut
 
 sub from_form {
     my $self = shift;
@@ -173,7 +265,24 @@ sub from_form {
 
     # Now set attbibutes:
     while (my ($key, $value) = each(%$hash)) {
-        next if $key =~ /^cf-/; # Custom fields are not yet supported.
+        if ($key =~ s/^cf-//) { # Handle custom fields.
+            if ($value =~ /,/) {    # OK, this is questionable.
+                $value = [ split(/,/, $value) ];
+            }
+
+            $self->cf($key, $value);
+            next;
+        }
+
+        unless (exists($rest2attr{$key})) {
+            warn "Unknown key: $key\n";
+            next;
+        }
+
+        if ($value =~ m/not set/i) {
+            $value = undef;
+        }
+
         my $method = $rest2attr{$key};
         if (exists($attributes->{$method}{form2value})) {
             $value = $attributes->{$method}{form2value}($value);
@@ -185,6 +294,13 @@ sub from_form {
 
     return;
 }
+
+=item retrieve
+
+Retrieve object's attributes.  Note that 'id' attribute must be set for this
+to work.
+
+=cut
 
 sub retrieve {
     my $self = shift;
@@ -204,6 +320,14 @@ sub retrieve {
     return $self;
 }
 
+=item store
+
+Store the object.  If 'id' is set, this is an update; otherwise, a new
+object is created and the 'id' attribute is set.  Note that only changed
+(dirty) attributes are sent to the server.
+
+=cut
+
 sub store {
     my $self = shift;
 
@@ -216,16 +340,23 @@ sub store {
             set     => $self->to_form,
         );
     } else {
-        $rt->create(
+        my $id = $rt->create(
             type    => $self->rt_type,
             set     => $self->to_form,
         );
+        $self->id($id);
     }
 
     $self->{__dirty} = {};
 
     return $self;
 }
+
+=item param($name, $value)
+
+Set an arbitrary parameter.
+
+=cut
 
 sub param {
     my $self = shift;
@@ -243,6 +374,37 @@ sub param {
     return $self->{__param}{$name};
 }
 
+=item cf([$name, [$value]])
+
+Given no arguments, returns the list of custom field names.  With
+one argument, returns the value of custom field C<$name>.  With two
+arguments, sets custom field C<$name> to C<$value>.
+
+=cut
+
+sub cf {
+    my $self = shift;
+
+    unless (@_) {
+        # Return a list of CFs.
+        return keys %{$self->{__cf}};
+    }
+
+    my $name = lc shift;
+
+    if (@_) {
+        $self->{__cf}{$name} = shift;
+    }
+
+    return $self->{__cf}{$name};
+}
+
+=item rt
+
+Get or set the 'rt' object, which should be of type L<RT::Client::REST>.
+
+=cut
+
 sub rt {
     my $self = shift;
 
@@ -257,5 +419,17 @@ sub rt {
 
     return $self->{__rt};
 }
+
+=back
+
+=head1 SEE ALSO
+
+L<RT::Client::REST::Ticket>
+
+=head1 AUTHOR
+
+Dmitri Tikhonov <dtikhonov@yahoo.com>
+
+=cut
 
 1;

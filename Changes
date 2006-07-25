@@ -1,5 +1,61 @@
-# $Id: Changes 5 2006-07-22 21:10:23Z dmitri $
+# $Id: Changes 23 2006-07-25 18:15:18Z dmitri $
 Revision history for Perl module RT::Client::REST
+
+0.12    Tue Jul 25 2006 "Dmitri Tikhonov" <dtikhonov@vonage.com>
+  Refactoring and improvement continues.  Still very much beta.
+
+  ! lib/RT/Client/REST/Ticket.pm
+    * Added methods 'comment' and 'correspond'.
+    * Added attribute 'last_updated'.
+    * Added POD.
+
+  ! t/22-ticket.t
+    * Added tests for new methods and attributes.
+
+  ! lib/RT/Client/REST.pm
+    * Added 'cc' and 'bcc' support to 'comment' and 'correspond' methods.
+    * Refactoring: moved forms functions and exceptions into their own files.
+    * Fixed POD (s/=end/=cut/).
+    * Throw 409 RT errors (syntax errors), since this client is not
+      interactive.
+
+  + lib/RT/Client/REST/Exception.pm
+    * Refactoring: moved forms functions and exceptions into their own files.
+    * Mapped 'does not exist' to ObjectNotFound exception.
+    * Added RT::Client::REST::UnknownCustomFieldException.
+
+  + lib/RT/Client/REST/Forms.pm
+    * Refactoring: moved forms functions and exceptions into their own files.
+
+  ! lib/RT/Client/REST/Object.pm
+    * When creating an object, update $self with the new id.
+    * Added support for fetching and updating custom fields.
+    * Added method 'cf' for custom field manipulation.
+    * Added POD.
+
+  ! t/20-object.t
+    * Added test for 'cf' method.
+
+  + t/90-pod.t
+    * Added POD tests using Test::Pod.
+
+  ! examples/edit_ticket.pl
+  ! examples/show_ticket.pl
+    * Now rtserver is $ENV{RTSERVER} by default.
+
+  + examples/create_ticket.pl
+  + examples/comment_on_ticket.pl
+  + examples/edit_custom_field.pl
+    * More examples.
+
+  ! Makefile.PL
+    * Added dependency on Params::Validate.
+
+  ! MANIFEST
+    * Updated to reflect new tests, examples, and classes.
+
+  + TODO
+    * Added TODO file.
 
 0.11    Sat Jul 22 2006 "Dmitri Tikhonov" <dtikhonov@vonage.com>
   ! lib/RT/Client/REST.pm 
