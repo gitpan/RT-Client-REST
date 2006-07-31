@@ -1,4 +1,4 @@
-# $Id: Object.pm 14 2006-07-25 18:01:44Z dmitri $
+# $Id: Object.pm 31 2006-07-31 13:36:55Z dtikhonov $
 
 package RT::Client::REST::Object;
 
@@ -43,8 +43,10 @@ use warnings;
 use vars qw($VERSION);
 $VERSION = 0.01;
 
+use Error qw(:try);
 use Params::Validate;
-use RT::Client::REST::Object::Exception 0.01;
+use RT::Client::REST::Object::Exception 0.02;
+use RT::Client::REST::SearchResult;
 
 =item new
 
@@ -295,13 +297,6 @@ sub from_form {
     return;
 }
 
-=item retrieve
-
-Retrieve object's attributes.  Note that 'id' attribute must be set for this
-to work.
-
-=cut
-
 sub retrieve {
     my $self = shift;
     my $rt = $self->rt;
@@ -319,14 +314,6 @@ sub retrieve {
 
     return $self;
 }
-
-=item store
-
-Store the object.  If 'id' is set, this is an update; otherwise, a new
-object is created and the 'id' attribute is set.  Note that only changed
-(dirty) attributes are sent to the server.
-
-=cut
 
 sub store {
     my $self = shift;
@@ -350,6 +337,87 @@ sub store {
     $self->{__dirty} = {};
 
     return $self;
+}
+
+sub search {
+    my $self = shift;
+
+    if (@_ & 1) {
+        RT::Client::REST::Object::OddNumberOfArgumentsException->throw;
+    }
+
+    my %opts = @_;
+
+    my $limits = delete($opts{limits}) || [];
+    my $query = '';
+
+    for my $limit (@$limits) {
+        my $kw;
+        try {
+            $kw = $self->_attr2keyword($limit->{attribute});
+        } catch RT::Clite::REST::Object::InvalidAttributeException with {
+            RT::Client::REST::Object::InvalidSearchParametersException
+                ->throw(shift->message);
+        };
+        my $op = $limit->{operator};
+        my $val = $limit->{value};
+        my $agg = $limit->{aggregator} || 'and';
+
+        if (length($query)) {
+            $query = "($query) $agg $kw $op '$val'";
+        } else {
+            $query = "$kw $op '$val'";
+        }
+    }
+
+    my $orderby;
+    try {
+        # Defaults to 'id' at the moment.  Do not rely on this --
+        # implementation may change!
+        $orderby = (delete($opts{reverseorder}) ? '-' : '+') .
+            ($self->_attr2keyword(delete($opts{orderby}) || 'id'));
+    } catch RT::Clite::REST::Object::InvalidAttributeException with {
+        RT::Client::REST::Object::InvalidSearchParametersException->throw(
+            shift->message,
+        );
+    };
+
+    my $rt = $self->rt;
+    my @results;
+    try {
+        @results = $rt->search(
+            type => $self->rt_type,
+            query => $query,
+            orderby => $orderby,
+        );
+    } catch RT::Client::REST::InvalidQueryException with {
+        RT::Client::REST::Object::InvalidSearchParametersException->throw;
+    };
+
+    return RT::Client::REST::SearchResult->new(
+        ids => \@results,
+        type => ref($self),
+        rt => $rt,
+    );
+}
+
+sub count { shift->search(@_)->count }
+
+sub _attr2keyword {
+    my ($self, $attr) = @_;
+    my $attributes = $self->_attributes;
+
+    unless (exists($attributes->{$attr})) {
+        no warnings 'uninitialized';
+        RT::Clite::REST::Object::InvalidAttributeException->throw(
+            "Attribute '$attr' does not exist in object type '" .
+                ref($self) . "'"
+        );
+    }
+
+    return (exists($attributes->{$attr}{rest_name}) ?
+            $attributes->{$attr}{rest_name} :
+            ucfirst($attr));
 }
 
 =item param($name, $value)
@@ -422,9 +490,65 @@ sub rt {
 
 =back
 
+=head1 DB METHODS
+
+The following are methods that have to do with reading, creating, updating,
+and searching objects.
+
+=over 2
+
+=item count
+
+Takes the same arguments as C<search()> but returns the actual count of
+the found items.  Throws the same exceptions.
+
+=item retrieve
+
+Retrieve object's attributes.  Note that 'id' attribute must be set for this
+to work.
+
+=item search (%opts)
+
+This method is used for searching objects.  It returns an object of type
+L<RT::Client::REST::SearchResult>, which can then be used to process
+results.  C<%opts> is a list of key-value pairs, which are as follows:
+
+=over 2
+
+=item limits
+
+This is a reference to array containing hash references with limits to
+apply to the search (think SQL limits).
+
+=item orderby
+
+Specifies attribute to sort the result by (in ascending order).
+
+=item reverseorder
+
+If set to a true value, sorts by attribute specified by B<orderby> in
+descending order.
+
+=back
+
+If the client cannot construct the query from the specified arguments,
+or if the server cannot make it out,
+C<RT::Client::REST::Object::InvalidSearchParametersException> is thrown.
+
+=item store
+
+Store the object.  If 'id' is set, this is an update; otherwise, a new
+object is created and the 'id' attribute is set.  Note that only changed
+(dirty) attributes are sent to the server.
+
+=cut
+
+=back
+
 =head1 SEE ALSO
 
-L<RT::Client::REST::Ticket>
+L<RT::Client::REST::Ticket>,
+L<RT::Client::REST::SearchResult>.
 
 =head1 AUTHOR
 

@@ -1,10 +1,13 @@
-# $Id: Exception.pm 23 2006-07-25 18:15:18Z dmitri $
+# $Id: Exception.pm 24 2006-07-28 20:39:27Z dtikhonov $
 #
 # We are going to throw exceptions, because we're cool like that.
 package RT::Client::REST::Exception;
 
 use strict;
 use warnings;
+
+use vars qw($VERSION);
+$VERSION = 0.02;
 
 use Error;
 
@@ -55,6 +58,11 @@ use Exception::Class (
         description => 'Unknown custom field',
     },
 
+    'RT::Client::REST::InvalidQueryException' => {
+        isa         => 'RT::Client::REST::RTException',
+        description => 'Invalid query (server could not parse it)',
+    },
+
     'RT::Client::REST::UnknownRTException' => {
         isa         => 'RT::Client::REST::RTException',
         description => 'Some other RT error',
@@ -76,6 +84,8 @@ sub _rt_content_to_exception {
         return 'RT::Client::REST::CouldNotCreateObjectException';
     } elsif ($content =~ /[Uu]nknown custom field/) {
         return 'RT::Client::REST::UnknownCustomFieldException';
+    } elsif ($content =~ /[Ii]nvalid query/) {
+        return 'RT::Client::REST::InvalidQueryException';
     } else {
         return 'RT::Client::REST::UnknownRTException';
     }

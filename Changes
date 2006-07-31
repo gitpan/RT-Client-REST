@@ -1,5 +1,43 @@
-# $Id: Changes 23 2006-07-25 18:15:18Z dmitri $
+# $Id: Changes 34 2006-07-31 13:40:03Z dtikhonov $
 Revision history for Perl module RT::Client::REST
+
+0.13    Mon Jul 31 2006 "Dmitri Tikhonov" <dtikhonov@vonage.com>
+  Added searching APIs.
+
+  ! lib/RT/Client/REST/Object.pm
+    * Added methods 'search' and 'count'.
+    * Updated POD.
+
+  + lib/RT/Client/REST/SearchResult.pm
+    * This class is an OO representation of search results.
+
+  + t/40-search.t
+    * Tests for RT/Client/REST/SearchResult.pm
+
+  + examples/search_tickets.pl
+    * Example of a search.
+
+  ! lib/RT/Client/REST.pm
+    * Added method 'search'.
+    * Modified POD to reflect latest changes.
+
+  ! t/10-core.t
+    * Added test for method 'search'.
+
+  ! lib/RT/Client/REST/Exception.pm
+    * Added RT::Client::REST::InvalidQueryException
+    * Added $VERSION
+
+  ! lib/RT/Client/REST/Object/Exception.pm
+    * Added two exceptions:
+      * RT::Client::REST::Object::InvalidSearchParametersException
+      * RT::Clite::REST::Object::InvalidAttributeException
+
+  ! TODO
+    * Search has been implemented.
+
+  ! MANIFEST
+    * Added search-related files.
 
 0.12    Tue Jul 25 2006 "Dmitri Tikhonov" <dtikhonov@vonage.com>
   Refactoring and improvement continues.  Still very much beta.

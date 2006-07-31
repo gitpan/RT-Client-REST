@@ -1,4 +1,4 @@
-# $Id: REST.pm 15 2006-07-25 18:02:34Z dmitri $
+# $Id: REST.pm 26 2006-07-28 21:01:08Z dtikhonov $
 # RT::Client::REST
 #
 # Dmitri Tikhonov <dtikhonov@vonage.com>
@@ -23,7 +23,7 @@ use strict;
 use warnings;
 
 use vars qw/$VERSION/;
-$VERSION = '0.12';
+$VERSION = '0.13';
 
 use LWP;
 use HTTP::Cookies;
@@ -71,6 +71,25 @@ sub show {
     });
 
     return map { $$_[2] } @{form_parse($r->content)};
+}
+
+sub search {
+    my $self = shift;
+
+    $self->_assert_even(@_);
+
+    my %opts = @_;
+
+    my $type = $self->_valid_type(delete($opts{type}));
+    my $query = delete($opts{query});
+    my $orderby = delete($opts{orderby});
+
+    my $r = $self->_submit("search/$type", {
+        query => $query,
+        (defined($orderby) ? (orderby => $orderby) : ()),
+    });
+
+    return $r->content =~ m/^(\d+):/gm;
 }
 
 sub edit {
@@ -430,13 +449,17 @@ to implement some RT interactions from my application, but did not feel that
 invoking a shell command is appropriate.  Thus, I took B<rt> tool, written
 by Abhijit Menon-Sen, and converted it to an object-oriented Perl module.
 
-As of this writing (version 0.06), B<RT::Client::REST> is missing a lot of
-things that B<rt> has.  It does not support attachments, CCs, BCCs, and
-probably other things.  B<RT::Client::REST> does not retrieve forms from
+B<RT::Client::REST> does not (at the moment, see TODO file) retrieve forms from
 RT server, which is either good or bad, depending how you look at it.  More
 work on this module will be performed in the future as I get a better grip
-of this whole REST business.  It also does not have 'list' (or 'search')
-operation; this will be added in a later version.
+of this whole REST business.
+
+=head1 USAGE NOTES
+
+This API mimics that of 'rt'.  For a more OO-style APIs, please use
+L<RT::Client::REST::Object>-derived classes:
+L<RT::Client::REST::Ticket> and L<RT::Client::REST::User> (the latter is
+not implemented yet).
 
 =head1 METHODS
 
@@ -488,6 +511,49 @@ prescribed by the B<set> parameter.
 Create a new object of type B<$type> and set initial parameters to B<%params>.
 Returns numeric ID of the new object.  If numeric ID cannot be parsed from
 the response, B<RT::Client::REST::MalformedRTResponseException> is thrown.
+
+=item search (type => $type, query => $query, %opts)
+
+Search for object of type C<$type> by using query C<$query>.  For
+example:
+
+  # Find all stalled tickets
+  my @ids = $rt->search(
+    type => 'ticket',
+    query => "Status = 'stalled'",
+  );
+
+C<%opts> is a list of key-value pairs:
+
+=over 4
+
+=item B<orderby>
+
+The value is the name of the field you want to sort by.  Plus or minus
+sign in front of it signifies ascending order (plus) or descending
+order (minus).  For example:
+
+  # Get all stalled tickets in reverse order:
+  my @ids = $rt->search(
+    type => 'ticket',
+    query => "Status = 'stalled'",
+    orderby => '-id',
+  );
+
+=back
+
+C<search> returns the list of numeric IDs of objects that matched
+your query.  You can then use these to retrieve object information
+using C<show()> method:
+
+  my @ids = $rt->search(
+    type => 'ticket',
+    query => "Status = 'stalled'",
+  );
+  for my $id (@ids) {
+    my ($ticket) = $rt->show(type => 'ticket', ids => [$id]);
+    print "Subject: ", $t->{Subject}, "\n";
+  }
 
 =item comment (ticket_id => $id, message => $message, %opts)
 
@@ -664,9 +730,7 @@ Implement /usr/bin/rt using this RT::Client::REST.
 
 =head1 VERSION
 
-This is version 0.06 of B<RT::Client::REST>.  B</usr/bin/rt> shipped with
-RT 3.4.5 is version 0.02, so the logical version continuation is to have
-one higher.
+This is version 0.13 of B<RT::Client::REST>.
 
 =head1 AUTHORS
 

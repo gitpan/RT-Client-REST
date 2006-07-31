@@ -1,4 +1,4 @@
-# $Id: Exception.pm 4 2006-07-22 21:02:27Z dmitri $
+# $Id: Exception.pm 25 2006-07-28 20:40:27Z dtikhonov $
 # RT::Client::REST::Object::Exception
 
 package RT::Client::REST::Object::Exception;
@@ -7,7 +7,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION);
-$VERSION = 0.01;
+$VERSION = 0.02;
 
 use Error;
 
@@ -25,6 +25,16 @@ use Exception::Class (
     'RT::Client::REST::Object::NoValuesProvidedException' => {
         isa         => __PACKAGE__,
         description => "Method expected parameters, but none were provided",
+    },
+
+    'RT::Client::REST::Object::InvalidSearchParametersException' => {
+        isa         => __PACKAGE__,
+        description => "Invalid search parameters provided",
+    },
+
+    'RT::Clite::REST::Object::InvalidAttributeException' => {
+        isa         => __PACKAGE__,
+        description => "Invalid attribute name",
     },
 );
 
