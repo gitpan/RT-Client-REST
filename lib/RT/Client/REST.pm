@@ -1,4 +1,4 @@
-# $Id: REST.pm 53 2006-08-01 15:17:22Z dtikhonov $
+# $Id: REST.pm 56 2006-08-01 16:38:31Z dtikhonov $
 # RT::Client::REST
 #
 # Dmitri Tikhonov <dtikhonov@vonage.com>
@@ -23,7 +23,7 @@ use strict;
 use warnings;
 
 use vars qw/$VERSION/;
-$VERSION = '0.15';
+$VERSION = '0.16';
 
 use LWP;
 use HTTP::Cookies;
@@ -64,7 +64,14 @@ sub show {
     my %opts = @_;
 
     my $type = $self->_valid_type(delete($opts{type}));
-    my $id = $self->_valid_numeric_object_id(delete($opts{id}));
+    my $id;
+
+    if ('user' eq $type) {
+        # User ID may be his username, not just a number.
+        $id = delete($opts{id});
+    } else {
+        $id = $self->_valid_numeric_object_id(delete($opts{id}));
+    }
 
     my $form = form_parse($self->_submit("$type/$id")->content);
     my ($c, $o, $k, $e) = @{$$form[0]};

@@ -1,5 +1,28 @@
-# $Id: Changes 54 2006-08-01 15:17:51Z dtikhonov $
+# $Id: Changes 60 2006-08-01 17:18:11Z dtikhonov $
 Revision history for Perl module RT::Client::REST
+
+0.16    Tue Aug  1 2006 "Dmitri Tikhonov" <dtikhonov@vonage.com>
+  Added support for user object; other minor changes.
+
+  + lib/RT/Client/REST/User.pm
+  + t/21-user.t
+    * Added user object.
+
+  + examples/show_user.pl
+  + examples/edit_user.pl
+    * Examples of the user APIs.
+
+  ! lib/RT/Client/REST.pm
+    * If method "show()" is called to retrieve an object of type "user",
+      'id' parameter does not have to be numeric.
+
+  ! lib/RT/Client/REST/Exception.pm
+    * Added RT::Client::REST::UnauthorizedActionException
+    * Method _rt_content_to_exception() now returns a ready-to-throw
+      exception with message set to massaged text from RT server.
+
+  ! MANIFEST
+    * Added new files.
 
 0.15    Tue Aug  1 2006 "Dmitri Tikhonov" <dtikhonov@vonage.com>
   ! lib/RT/Client/REST/Ticket.pm

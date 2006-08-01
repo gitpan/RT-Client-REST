@@ -1,4 +1,4 @@
-# $Id: Exception.pm 40 2006-08-01 14:59:06Z dtikhonov $
+# $Id: Exception.pm 55 2006-08-01 15:54:58Z dtikhonov $
 #
 # We are going to throw exceptions, because we're cool like that.
 package RT::Client::REST::Exception;
@@ -7,7 +7,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION);
-$VERSION = 0.04;
+$VERSION = 0.05;
 
 use Error;
 
@@ -94,6 +94,11 @@ use Exception::Class (
         description => 'Illegal value',
     },
 
+    'RT::Client::REST::UnauthorizedActionException' => {
+        isa         => 'RT::Client::REST::RTException',
+        description => 'You are not authorized to perform this action',
+    },
+
     'RT::Client::REST::UnknownRTException' => {
         isa         => 'RT::Client::REST::RTException',
         description => 'Some other RT error',
@@ -106,7 +111,7 @@ use Exception::Class (
     },
 );
 
-sub _rt_content_to_exception {
+sub _get_exception_class {
     my ($self, $content) = @_;
 
     if ($content =~ /not found|\d+ does not exist|[Ii]nvalid attachment id/) {
@@ -127,9 +132,22 @@ sub _rt_content_to_exception {
         return 'RT::Client::REST::ImmutableFieldException';
     } elsif ($content =~ /[Ii]llegal value/) {
         return 'RT::Client::REST::IllegalValueException';
+    } elsif ($content =~ /[Yy]ou are not allowed/) {
+        return 'RT::Client::REST::UnauthorizedActionException';
     } else {
         return 'RT::Client::REST::UnknownRTException';
     }
+}
+
+sub _rt_content_to_exception {
+    my ($self, $content) = @_;
+
+    (my $message = $content) =~ s/^#\s*//;
+    chomp($message);
+
+    return $self->_get_exception_class($content)->new(
+        message => $message,
+    );
 }
 
 # Some mildly weird magic to fix up inheritance (see Exception::Class POD).
@@ -241,6 +259,10 @@ Unknown custom field was specified in the request.
 
 Server could not parse the search query.
 
+=item B<RT::Client::REST::UnauthorizedActionException>
+
+You are not authorized to perform this action.
+
 =item B<RT::Client::REST::UnknownRTException>
 
 Some other RT exception that the driver cannot recognize.
@@ -255,14 +277,20 @@ Some other RT exception that the driver cannot recognize.
 
 =over 2
 
+=item B<_get_exception_class>
+
+Figure out exception class based on content returned by RT.
+
 =item B<_rt_content_to_exception>
 
-Translate error string returned by RT server into exception class name.
+Translate error string returned by RT server into an exception object
+ready to be thrown.
 
 =back
 
 =head1 SEE ALSO
 
+L<Exception::Class>,
 L<RT::Client::REST>.
 
 =head1 AUTHOR
