@@ -1,14 +1,14 @@
 # $Id: Ticket.pm 12 2006-07-25 16:34:01Z dmitri $
 #
-# RT::Client::REST::Attachment -- attachment object representation.
+# RT::Client::REST::Transaction -- transaction object representation.
 
-package RT::Client::REST::Attachment;
+package RT::Client::REST::Transaction;
 
 use strict;
 use warnings;
 
 use vars qw($VERSION);
-$VERSION = 0.02;
+$VERSION = 0.01;
 
 use Params::Validate qw(:types);
 use RT::Client::REST::Object 0.01;
@@ -23,12 +23,30 @@ sub _attributes {{
         },
     },
 
-    creator_id => {
+    creator => {
         validation  => {
             type    => SCALAR,
-            regex   => qr/^\d+$/,
         },
-        rest_name   => 'Creator',
+    },
+
+    type => {
+        validation  => {
+            type    => SCALAR,
+        },
+    },
+
+    old_value => {
+        validation  => {
+            type    => SCALAR,
+        },
+        rest_name => "OldValue",
+    },
+
+    new_value  => {
+        validation  => {
+            type    => SCALAR,
+        },
+        rest_name => "NewValue",
     },
 
     parent_id => {
@@ -36,44 +54,23 @@ sub _attributes {{
             type    => SCALAR,
             regex   => qr/^\d+$/,
         },
+        rest_name   => 'Ticket',
     },
 
-    subject => {
+    attachments => {
         validation  => {
             type    => SCALAR,
         },
     },
 
-    content_type  => {
+    time_taken => {
         validation  => {
             type    => SCALAR,
         },
-        rest_name   => "ContentType",
+        rest_name   => 'TimeTaken',
     },
 
-    file_name => {
-        validation  => {
-            type    => SCALAR,
-        },
-        rest_name   => 'Filename',
-    },
-
-    transaction_id => {
-        validation  => {
-            type    => SCALAR,
-            regex   => qr/^\d+$/,
-        },
-        rest_name   => 'Transaction',
-    },
-
-    message_id => {
-        validation  => {
-            type    => SCALAR,
-        },
-        rest_name   => 'MessageId',
-    },
-
-    created => {
+    field => {
         validation  => {
             type    => SCALAR,
         },
@@ -85,33 +82,32 @@ sub _attributes {{
         },
     },
 
-    headers => {
+    created => {
         validation  => {
             type    => SCALAR,
         },
     },
 
-    parent => {
+    description => {
         validation  => {
-            type    => SCALAR,
+            type    => SCALAR|UNDEF,
         },
     },
 
-    content_encoding => {
+    data => {
         validation  => {
             type    => SCALAR,
         },
-        rest_name => 'ContentEncoding',
     },
 }}
 
-sub rt_type { 'attachment' }
+sub rt_type { 'transaction' }
 
 sub retrieve {
     my $self = shift;
 
     $self->from_form(
-        $self->rt->get_attachment(
+        $self->rt->get_transaction(
             parent_id   => $self->parent_id,
             id          => $self->id,
         ),
@@ -141,29 +137,29 @@ __END__
 
 =head1 NAME
 
-RT::Client::REST::Attachment -- this object represents an attachment.
+RT::Client::REST::Transaction -- this object represents a transaction.
 
 =head1 SYNOPSIS
 
-  my $attachments = $ticket->attachments;
+  my $transactions = $ticket->transactions;
 
-  my $count = $attachments->count;
-  print "There are $count attachments.\n";
+  my $count = $transactions->count;
+  print "There are $count transactions.\n";
 
-  my $iterator = $attachments->get_iterator;
-  while (my $att = &$iterator) {
-      print "Id: ", $att->id, "; Subject: ", $att->subject, "\n";
+  my $iterator = $transactions->get_iterator;
+  while (my $tr = &$iterator) {
+      print "Id: ", $tr->id, "; Type: ", $tr->type, "\n";
   }
 
 =head1 DESCRIPTION
 
-An attachment is a second-class citizen, as it does not exist (at least
+A transaction is a second-class citizen, as it does not exist (at least
 from the current REST protocol implementation) by itself.  At the moment,
 it is always associated with a ticket (see B<parent_id> attribute).
 Thus, you will
-rarely retrieve an attachment by itself; instead, you should use
-C<attachments()> method of L<RT::Client::REST::Ticket> object to get
-an iterator for all attachments for that ticket.
+rarely retrieve a transaction by itself; instead, you should use
+C<transactions()> method of L<RT::Client::REST::Ticket> object to get
+an iterator for all (or some) transactions for that ticket.
 
 =head1 ATTRIBUTES
 
@@ -171,75 +167,69 @@ an iterator for all attachments for that ticket.
 
 =item B<id>
 
-Numeric ID of the attachment.
+Numeric ID of the transaction.
 
-=item B<creator_id>
+=item B<creator>
 
-Numeric ID of the user who created the attachment.
+Username of the user who created the transaction.
 
 =item B<parent_id>
 
-Numeric ID of the object the attachment is associated with.  This is not
-a proper attribute of the attachment as specified by REST -- it is simply
-to store the ID of the L<RT::Client::REST::Ticket> object this attachment
-belongs to.
+Numeric ID of the object the transaction is associated with.
 
-=item B<subject>
+=item B<type>
 
-Subject of the attachment.
+Type of the transactions.  Please referer to L<RT::Client::REST>
+documentation for the list of transaction types you can expect this
+field to contain.  Note that there may be some transaction types not
+(dis)covered yet.
 
-=item B<content_type>
+=item B<old_value>
 
-Content type.
+Old value.
 
-=item B<file_name>
+=item B<new_value>
 
-File name (if any).
+New value.
 
-=item B<transaction_id>
+=item B<field>
 
-Numeric ID of the L<RT::Client::REST::Transaction> object this attachment
-is associated with.
+Name of the field the transaction is describing (if any).
 
-=item B<message_id>
+=item B<attachments>
 
-Message ID.
+I have never seen it set to anything yet.  (I will some day investigate this).
 
 =item B<created>
 
-Time when the attachment was created
+Time when the transaction was created.
 
 =item B<content>
 
-Actual content of the attachment.
+Actual content of the transaction.
 
-=item B<headers>
+=item B<description>
 
-Headers (not parsed), if any.
+Human-readable description of the transaction as provided by RT.
 
-=item B<parent>
+=item B<data>
 
-Parent (not sure what this is yet).
-
-=item B<content_encoding>
-
-Content encoding, if any.
+Not sure what this is yet.
 
 =back
 
 =head1 METHODS
 
-B<RT::Client::REST::Attachment> is a read-only object, so you cannot
+B<RT::Client::REST::Transaction> is a read-only object, so you cannot
 C<store()> it.  Also, because it is a second-class citizen, you cannot
-C<search()> or C<count()> it -- use C<attachments()> method provided
+C<search()> or C<count()> it -- use C<transactions()> method provided
 by L<RT::Client::REST::Ticket>.
 
 =over 2
 
 =item retrieve
 
-To retrieve an attachment, attributes B<id> and B<parent_id> must
-be set.
+To retrieve a transaction, attributes B<id> and B<parent_id> must be set.
 
 =back
 
@@ -249,12 +239,13 @@ be set.
 
 =item B<rt_type>
 
-Returns 'attachment'.
+Returns 'transaction'.
 
 =back
 
 =head1 SEE ALSO
 
+L<RT::Client::REST>,
 L<RT::Client::REST::Ticket>,
 L<RT::Client::REST::SearchResult>.
 

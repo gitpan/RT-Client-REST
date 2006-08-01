@@ -5,9 +5,12 @@ examples/edit_custom_field.pl
 examples/edit_ticket.pl
 examples/edit_user.pl
 examples/list_attachments.pl
+examples/list_transactions.pl
+examples/list_transactions_rt.pl
 examples/search_tickets.pl
 examples/show_attachment.pl
 examples/show_ticket.pl
+examples/show_transaction.pl
 examples/show_user.pl
 lib/RT/Client/REST/Attachment.pm
 lib/RT/Client/REST/Exception.pm
@@ -17,6 +20,7 @@ lib/RT/Client/REST/Object.pm
 lib/RT/Client/REST.pm
 lib/RT/Client/REST/SearchResult.pm
 lib/RT/Client/REST/Ticket.pm
+lib/RT/Client/REST/Transaction.pm
 lib/RT/Client/REST/User.pm
 Makefile.PL
 MANIFEST
@@ -26,6 +30,7 @@ t/20-object.t
 t/21-user.t
 t/22-ticket.t
 t/23-attachment.t
+t/24-transaction.t
 t/40-search.t
 t/90-pod.t
 TODO

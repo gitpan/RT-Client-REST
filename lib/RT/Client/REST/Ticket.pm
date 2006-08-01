@@ -1,4 +1,4 @@
-# $Id: Ticket.pm 52 2006-08-01 15:16:38Z dtikhonov $
+# $Id: Ticket.pm 66 2006-08-01 21:56:55Z dtikhonov $
 #
 # RT::Client::REST::Ticket -- ticket object representation.
 
@@ -8,18 +8,20 @@ use strict;
 use warnings;
 
 use vars qw($VERSION);
-$VERSION = 0.03;
+$VERSION = 0.04;
 
 use Params::Validate qw(:types);
-use RT::Client::REST 0.14;
+use RT::Client::REST 0.17;
+use RT::Client::REST::Attachment;
 use RT::Client::REST::Object 0.01;
 use RT::Client::REST::Object::Exception 0.01;
 use RT::Client::REST::SearchResult 0.02;
+use RT::Client::REST::Transaction;
 use base 'RT::Client::REST::Object';
 
 =head1 NAME
 
-RT::Client::REST::Ticket -- ticket object.
+RT::Client::REST::Ticket -- this object represents a ticket.
 
 =head1 SYNOPSIS
 
@@ -377,6 +379,49 @@ sub attachments {
     );
 }
 
+=item B<transactions>
+
+Get transactions associated with this ticket.  Optionally, you can specify
+exactly what types of transactions you want listed, for example:
+
+  my $result = $ticket->transactions(type => [qw(Comment Correspond)]);
+
+Please reference L<RT::Client::REST> documentation for the full list of
+valid transaction types.
+
+Return value is an object of type L<RT::Client::REST::SearchResult> which
+can then be used to iterate over transaction objects
+(L<RT::Client::REST::Transaction>).
+
+=cut
+
+sub transactions {
+    my $self = shift;
+
+    if (@_ & 1) {
+        RT::Client::REST::Object::OddNumberOfArgumentsException->throw;
+    }
+
+    my %opts = @_;
+    my %params = (
+        parent_id => $self->id,
+    );
+    if (defined(my $type = delete($opts{type}))) {
+        $params{transaction_type} = $type;
+    }
+    
+    RT::Client::REST::SearchResult->new(
+        ids => [ $self->rt->get_transaction_ids(%params) ],
+        retrieve => sub {
+            return RT::Client::REST::Transaction->new(
+                id => shift,
+                parent_id => $self->id,
+                rt => $self->rt,
+            )->retrieve;
+        },
+    );
+}
+
 =back
 
 =head1 INTERNAL METHODS
@@ -397,7 +442,8 @@ sub rt_type { 'ticket' }
 
 L<RT::Client::REST>, L<RT::Client::REST::Object>,
 L<RT::Client::REST::Attachment>,
-L<RT::Client::REST::SearchResult>.
+L<RT::Client::REST::SearchResult>,
+L<RT::Client::REST::Transaction>.
 
 =head1 AUTHOR
 

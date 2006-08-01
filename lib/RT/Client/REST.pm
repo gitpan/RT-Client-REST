@@ -1,4 +1,4 @@
-# $Id: REST.pm 56 2006-08-01 16:38:31Z dtikhonov $
+# $Id: REST.pm 64 2006-08-01 21:54:25Z dtikhonov $
 # RT::Client::REST
 #
 # Dmitri Tikhonov <dtikhonov@vonage.com>
@@ -23,7 +23,7 @@ use strict;
 use warnings;
 
 use vars qw/$VERSION/;
-$VERSION = '0.16';
+$VERSION = '0.17';
 
 use LWP;
 use HTTP::Cookies;
@@ -118,6 +118,77 @@ sub get_attachment {
 
     my $form = form_parse(
         $self->_submit("$type/$parent_id/attachments/$id")->content
+    );
+    my ($c, $o, $k, $e) = @{$$form[0]};
+
+    if (!@$o && $c) {
+        RT::Client::REST::Exception->_rt_content_to_exception($c)->throw;
+    }
+
+    return $k;
+}
+
+sub get_transaction_ids {
+    my $self = shift;
+
+    $self->_assert_even(@_);
+
+    my %opts = @_;
+
+    my $parent_id = $self->_valid_numeric_object_id(delete($opts{parent_id}));
+    my $type = $self->_valid_type(delete($opts{type}) || 'ticket');
+
+    my $path;
+    my $tr_type = delete($opts{transaction_type});
+    if (!defined($tr_type)) {
+        # Gotta catch 'em all!
+        $path = "$type/$parent_id/history";
+    } elsif ('ARRAY' eq ref($tr_type)) {
+        # OK, more than one type.  Call ourselves for each.
+        # NOTE: this may be very expensive.
+        return sort map {
+            $self->get_transaction_ids(
+                parent_id => $parent_id,
+                transaction_type => $_,
+            )
+        } map {
+            # Check all the types before recursing, cheaper to catch an
+            # error this way.
+            $self->_valid_transaction_type($_)
+        } @$type;
+    } else {
+        $tr_type = $self->_valid_transaction_type($tr_type);
+        $path = "$type/$parent_id/history/type/$tr_type"
+    }
+
+    my $form = form_parse( $self->_submit($path)->content );
+    my ($c, $o, $k, $e) = @{$$form[0]};
+
+    if (!length($e)) {
+        my $ex = RT::Client::REST::Exception->_rt_content_to_exception($c);
+        unless ($ex->message =~ m~^0/~) {
+            # We do not throw exception if the error is that no values
+            # were found.
+            $ex->throw;
+        }
+    }
+
+    return $e =~ m/^(?:>> )?(\d+):/mg;
+}
+
+sub get_transaction {
+    my $self = shift;
+
+    $self->_assert_even(@_);
+
+    my %opts = @_;
+
+    my $type = $self->_valid_type(delete($opts{type}) || 'ticket');
+    my $parent_id = $self->_valid_numeric_object_id(delete($opts{parent_id}));
+    my $id = $self->_valid_numeric_object_id(delete($opts{id}));
+
+    my $form = form_parse(
+        $self->_submit("$type/$parent_id/history/id/$id")->content
     );
     my ($c, $o, $k, $e) = @{$$form[0]};
 
@@ -376,6 +447,14 @@ sub _submit {
     return $res;
 }
 
+# Not a constant so that it can be overridden.
+sub _list_of_valid_transaction_types {
+    sort +(qw(
+        Create Set Status Correspond Comment Give Steal Take Told
+        CustomField AddLink DeleteLink AddWatcher DelWatcher EmailRecord
+    ));
+}
+
 sub _valid_type {
     my ($self, $type) = @_;
 
@@ -448,6 +527,19 @@ sub _valid_link_type {
     }
 
     return lc($type);
+}
+
+sub _valid_transaction_type {
+    my ($self, $type) = @_;
+
+    unless (grep { $type eq $_ } $self->_list_of_valid_transaction_types) {
+        RT::Client::REST::InvalidParameterValueException->throw(
+            "'$type' is not a valid transaction type.  Allowed types: " .
+            join(", ", $self->_list_of_valid_transaction_types)
+        );
+    }
+
+    return $type;
 }
 
 sub _assert_even {
@@ -630,6 +722,70 @@ Get a list of numeric attachment IDs associated with ticket C<$id>.
 Returns reference to a hash with key-value pair describing attachment
 C<$id> of ticket C<$parent_id>.  (parent_id because -- who knows? --
 maybe attachments won't be just for tickets anymore in the future).
+
+=item get_transaction_ids (parent_id => $id, %opts)
+
+Get a list of numeric IDs associated with parent ID C<$id>.  C<%opts>
+have the following options:
+
+=over 2
+
+=item B<type>
+
+Type of the object transactions are associated wtih.  Defaults to "ticket"
+(I do not think server-side supports anything else).  This is designed with
+the eye on the future, as transactions are not just for tickets, but for
+other objects as well.
+
+=item B<transaction_type>
+
+If not specified, IDs of all transactions are returned.  If set to a
+scalar, only transactions of that type are returned.  If you want to specify
+more than one type, pass an array reference.
+
+Transactions may be of the following types (case-sensitive):
+
+=over 2
+
+=item AddLink
+
+=item AddWatcher
+
+=item Comment
+
+=item Correspond
+
+=item Create
+
+=item CustomField
+
+=item DeleteLink
+
+=item DelWatcher
+
+=item EmailRecord
+
+=item Give
+
+=item Set
+
+=item Status
+
+=item Steal
+
+=item Take
+
+=item Told
+
+=back
+
+=back
+
+=item get_transaction (parent_id => $id, id => $id, %opts)
+
+Get a hashref representation of transaction C<$id> associated with
+parent object C<$id>.  You can optionally specify parent object type in
+C<%opts> (defaults to 'ticket').
 
 =item merge_tickets (src => $id1, dst => $id2)
 

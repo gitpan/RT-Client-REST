@@ -1,5 +1,29 @@
-# $Id: Changes 60 2006-08-01 17:18:11Z dtikhonov $
+# $Id: Changes 70 2006-08-01 22:00:24Z dtikhonov $
 Revision history for Perl module RT::Client::REST
+
+0.17    Tue Aug  1 2006 "Dmitri Tikhonov" <dtikhonov@vonage.com>
+  + lib/RT/Client/REST/Transaction.pm
+  + t/24-transaction.t
+    * Added transaction object.
+
+  + examples/show_transaction.pl
+  + examples/list_transactions_rt.pl
+  + examples/list_transactions.pl
+    * Some more examples.
+
+  ! lib/RT/Client/REST/Ticket.pm
+    * Added method "transactions()".
+
+  ! lib/RT/Client/REST.pm
+  ! t/10-core.t
+    * Added methods "get_transaction_ids()" and "get_transaction()"
+
+  ! lib/RT/Client/REST/Attachment.pm
+    * After retrieving values, set everything to not dirty.
+    * Fixed up POD.
+
+  ! MANIFEST
+    * Added new files.
 
 0.16    Tue Aug  1 2006 "Dmitri Tikhonov" <dtikhonov@vonage.com>
   Added support for user object; other minor changes.
