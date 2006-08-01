@@ -1,11 +1,12 @@
 use strict;
 use warnings;
 
-use Test::More tests => 34;
+use Test::More tests => 36;
 use Test::Exception;
 
 use constant METHODS => (
     'new', 'to_form', 'from_form', 'rt_type', 'comment', 'correspond',
+    'attachments',
     
     # attrubutes:
     'id', 'queue', 'owner', 'creator', 'subject', 'status', 'priority',
@@ -37,5 +38,7 @@ for my $method (qw(comment correspond)) {
         $ticket->$method;
     } 'RT::Client::REST::Object::InvalidValueException';
 }
+
+ok('ticket' eq $ticket->rt_type);
 
 # vim:ft=perl:

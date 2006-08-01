@@ -1,5 +1,53 @@
-# $Id: Changes 34 2006-07-31 13:40:03Z dtikhonov $
+# $Id: Changes 54 2006-08-01 15:17:51Z dtikhonov $
 Revision history for Perl module RT::Client::REST
+
+0.15    Tue Aug  1 2006 "Dmitri Tikhonov" <dtikhonov@vonage.com>
+  ! lib/RT/Client/REST/Ticket.pm
+    * Fixed up POD.
+
+  ! lib/RT/Client/REST.pm
+    * Upped $VERSION to 0.15 -- no code changes.
+
+0.14    Tue Aug  1 2006 "Dmitri Tikhonov" <dtikhonov@vonage.com>
+  + lib/RT/Client/REST/Attachment.pm
+  + examples/list_attachments.pl
+  + examples/show_attachment.pl
+  + t/23-attachment.t
+    * New attachment representation.
+
+  ! lib/RT/Client/REST/Ticket.pm
+  ! t/22-ticket.t
+    * Added method "attachments()".
+
+  ! lib/RT/Client/REST/SearchResult.pm
+  ! t/40-search.t
+    * Changed APIs to be more flexible -- pass a closure to retrieve
+      objects.
+
+  ! lib/RT/Client/REST/Object.pm
+    * Modified to work correctly with new REST.pm and SearchResult.pm APIs.
+
+  ! lib/RT/Client/REST/Object/Exception.pm
+    * Added RT::Client::REST::Object::IllegalMethodException
+
+  ! examples/show_ticket.pl
+    * Catch and display exceptions.
+
+  ! lib/RT/Client/REST/Exception.pm
+    * Added several exceptions.
+    * Added POD.
+
+  ! lib/RT/Client/REST.pm
+  ! t/10-core.t
+    * Modified "show()" and "edit()" methods to only accept a single ID.
+      This is needed in order to correctly throw exceptions -- one object
+      at a time, please.
+    * Added methods "get_attachment_ids()" and "get_attachment()".
+    * Removed list of exceptions (see Exception.pm docs).
+    * Various small updates to POD.
+
+  ! MANIFEST
+    * Added the new files.
 
 0.13    Mon Jul 31 2006 "Dmitri Tikhonov" <dtikhonov@vonage.com>
   Added searching APIs.

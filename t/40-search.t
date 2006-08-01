@@ -34,7 +34,7 @@ my @ids = (1 .. 9);
 lives_ok {
     $search = RT::Client::REST::SearchResult->new(
         ids => \@ids,
-        type => 'Mock',
+        retrieve => sub { Mock->new(id => shift) },
     );
 };
 

@@ -1,4 +1,4 @@
-# $Id: Exception.pm 25 2006-07-28 20:40:27Z dtikhonov $
+# $Id: Exception.pm 41 2006-08-01 14:59:39Z dtikhonov $
 # RT::Client::REST::Object::Exception
 
 package RT::Client::REST::Object::Exception;
@@ -7,7 +7,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION);
-$VERSION = 0.02;
+$VERSION = 0.03;
 
 use Error;
 
@@ -35,6 +35,11 @@ use Exception::Class (
     'RT::Clite::REST::Object::InvalidAttributeException' => {
         isa         => __PACKAGE__,
         description => "Invalid attribute name",
+    },
+
+    'RT::Client::REST::Object::IllegalMethodException' => {
+        isa         => __PACKAGE__,
+        description => "Illegal method is called on the object",
     },
 );
 

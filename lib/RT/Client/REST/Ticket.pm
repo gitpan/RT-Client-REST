@@ -1,4 +1,4 @@
-# $Id: Ticket.pm 12 2006-07-25 16:34:01Z dmitri $
+# $Id: Ticket.pm 52 2006-08-01 15:16:38Z dtikhonov $
 #
 # RT::Client::REST::Ticket -- ticket object representation.
 
@@ -8,11 +8,13 @@ use strict;
 use warnings;
 
 use vars qw($VERSION);
-$VERSION = 0.02;
+$VERSION = 0.03;
 
 use Params::Validate qw(:types);
+use RT::Client::REST 0.14;
 use RT::Client::REST::Object 0.01;
 use RT::Client::REST::Object::Exception 0.01;
+use RT::Client::REST::SearchResult 0.02;
 use base 'RT::Client::REST::Object';
 
 =head1 NAME
@@ -322,8 +324,6 @@ reference).
 Add correspondence to the ticket.  Takes exactly the same arguments
 as the B<comment> method above.
 
-=back
-
 =cut
 
 # comment and correspond are really the same method, so we save ourselves
@@ -354,6 +354,31 @@ for my $method (qw(comment correspond)) {
     };
 }
 
+=item B<attachments>
+
+Get attachments associated with this ticket.  What is returned is an
+object of type L<RT::Client::REST::SearchResult> which can then be used
+to get at objects of type L<RT::Client::REST::Attachment>.
+
+=cut
+
+sub attachments {
+    my $self = shift;
+    
+    RT::Client::REST::SearchResult->new(
+        ids => [ $self->rt->get_attachment_ids(id => $self->id) ],
+        retrieve => sub {
+            return RT::Client::REST::Attachment->new(
+                id => shift,
+                parent_id => $self->id,
+                rt => $self->rt,
+            )->retrieve;
+        },
+    );
+}
+
+=back
+
 =head1 INTERNAL METHODS
 
 =over 2
@@ -370,7 +395,9 @@ sub rt_type { 'ticket' }
 
 =head1 SEE ALSO
 
-L<RT::Client::REST>, L<RT::Client::REST::Object>.
+L<RT::Client::REST>, L<RT::Client::REST::Object>,
+L<RT::Client::REST::Attachment>,
+L<RT::Client::REST::SearchResult>.
 
 =head1 AUTHOR
 

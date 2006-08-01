@@ -8,7 +8,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION);
-$VERSION = 0.01;
+$VERSION = 0.02;
 
 sub new {
     my $class = shift;
@@ -18,8 +18,7 @@ sub new {
     my $self = bless {}, ref($class) || $class;
 
     # FIXME: add validation.
-    $self->{_rt} = $opts{rt};
-    $self->{_type} = $opts{type};
+    $self->{_retrieve} = $opts{retrieve};
     $self->{_ids} = $opts{ids} || [];
 
     return $self;
@@ -30,26 +29,16 @@ sub count { scalar(@{shift->{_ids}}) }
 sub get_iterator {
     my $self = shift;
     my @ids = @{$self->{_ids}};
-    my $type = $self->{_type};
-    my $rt = $self->{_rt};
+    my $retrieve = $self->{_retrieve};
 
     return sub {
         if (wantarray) {
             my @tomap = @ids;
             @ids = ();
 
-            return map {
-                $type->new(
-                    id => $_,
-                    rt => $rt,
-                )->retrieve
-            } @tomap;
+            return map { $retrieve->($_) } @tomap;
         } elsif (@ids) {
-            my $object = $type->new(
-                id => shift(@ids),
-                rt => $rt,
-            )->retrieve;
-            return $object;
+            return $retrieve->(shift(@ids));
         } else {
             return;     # This signifies the end of the iterations
         }
@@ -125,8 +114,12 @@ completeness, here are the arguments:
 
   my $search = RT::Client::REST::SearchResult->new(
     ids => [1 .. 10],
-    type => 'RT::Client::REST::Ticket,
-    rt => RT::Client::REST->new(%opts),
+    retrieve => sub {       # Yup, that's a closure.
+      RT::Client::REST::Ticket->new(
+        id => shift,
+        rt => $rt,
+      )->retrieve;
+    },
   );
 
 =back

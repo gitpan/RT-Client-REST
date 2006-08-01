@@ -1,4 +1,4 @@
-# $Id: Object.pm 31 2006-07-31 13:36:55Z dtikhonov $
+# $Id: Object.pm 44 2006-08-01 15:05:33Z dtikhonov $
 
 package RT::Client::REST::Object;
 
@@ -41,12 +41,12 @@ use strict;
 use warnings;
 
 use vars qw($VERSION);
-$VERSION = 0.01;
+$VERSION = 0.02;
 
 use Error qw(:try);
 use Params::Validate;
 use RT::Client::REST::Object::Exception 0.02;
-use RT::Client::REST::SearchResult;
+use RT::Client::REST::SearchResult 0.02;
 
 =item new
 
@@ -108,9 +108,10 @@ sub _generate_methods {
                     my @v = @_;
                     Params::Validate::validation_options(
                         on_fail => sub {
+                            no warnings 'uninitialized';
                             RT::Client::REST::Object::InvalidValueException
                             ->throw(
-                            "@v is not a valid value for attribute '$method'"
+                            "'@v' is not a valid value for attribute '$method'"
                             );
                         },
                     );
@@ -307,7 +308,7 @@ sub retrieve {
         );
     }
 
-    my ($hash) = $rt->show(type => $self->rt_type, objects => [$self->id]);
+    my ($hash) = $rt->show(type => $self->rt_type, id => $self->id);
     $self->from_form($hash);
 
     $self->{__dirty} = {};
@@ -323,7 +324,7 @@ sub store {
     if (defined($self->id)) {
         $rt->edit(
             type    => $self->rt_type,
-            objects => [ $self->id ],
+            id      => $self->id,
             set     => $self->to_form,
         );
     } else {
@@ -396,8 +397,12 @@ sub search {
 
     return RT::Client::REST::SearchResult->new(
         ids => \@results,
-        type => ref($self),
-        rt => $rt,
+        retrieve => sub {
+            return $self->new(
+                id => shift,
+                rt => $rt,
+            )->retrieve,
+        },
     );
 }
 

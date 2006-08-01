@@ -7,10 +7,10 @@ use warnings;
 
 use Error qw(:try);
 use RT::Client::REST;
-use RT::Client::REST::Ticket;
+use RT::Client::REST::Attachment;
 
 unless (@ARGV >= 3) {
-    die "Usage: $0 username password ticket_id\n";
+    die "Usage: $0 username password ticket_id attachment_id\n";
 }
 
 my $rt = RT::Client::REST->new(
@@ -19,10 +19,11 @@ my $rt = RT::Client::REST->new(
     password=> shift(@ARGV),
 );
 
-my $ticket;
+my $att;
 try {
-    $ticket = RT::Client::REST::Ticket->new(
+    $att = RT::Client::REST::Attachment->new(
         rt  => $rt,
+        parent_id  => shift(@ARGV),
         id  => shift(@ARGV),
     )->retrieve;
 } catch Exception::Class::Base with {
@@ -31,4 +32,4 @@ try {
 };
 
 use Data::Dumper;
-print Dumper($ticket);
+print Dumper($att);

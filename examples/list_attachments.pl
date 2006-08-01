@@ -7,6 +7,7 @@ use warnings;
 
 use Error qw(:try);
 use RT::Client::REST;
+use RT::Client::REST::Attachment;
 use RT::Client::REST::Ticket;
 
 unless (@ARGV >= 3) {
@@ -19,16 +20,20 @@ my $rt = RT::Client::REST->new(
     password=> shift(@ARGV),
 );
 
-my $ticket;
+my $ticket = RT::Client::REST::Ticket->new(rt => $rt, id => shift(@ARGV));
+
+my $results;
 try {
-    $ticket = RT::Client::REST::Ticket->new(
-        rt  => $rt,
-        id  => shift(@ARGV),
-    )->retrieve;
+    $results = $ticket->attachments;
 } catch Exception::Class::Base with {
     my $e = shift;
-    die ref($e), ": ", $e->message || $e->description, "\n";
+    die ref($e), ": ", $e->message;
 };
 
-use Data::Dumper;
-print Dumper($ticket);
+my $count = $results->count;
+print "There are $count results that matched your query\n";
+
+my $iterator = $results->get_iterator;
+while (my $att = &$iterator) {
+    print "Id: ", $att->id, "; Subject: ", $att->subject, "\n";
+}

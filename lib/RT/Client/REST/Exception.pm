@@ -1,4 +1,4 @@
-# $Id: Exception.pm 24 2006-07-28 20:39:27Z dtikhonov $
+# $Id: Exception.pm 40 2006-08-01 14:59:06Z dtikhonov $
 #
 # We are going to throw exceptions, because we're cool like that.
 package RT::Client::REST::Exception;
@@ -7,7 +7,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION);
-$VERSION = 0.02;
+$VERSION = 0.04;
 
 use Error;
 
@@ -53,6 +53,11 @@ use Exception::Class (
         description => "Incorrect username or password",
     },
 
+    'RT::Client::REST::UpdateException' => {
+        isa         => 'RT::Client::REST::RTException',
+        description => 'Error updating an object.  Virtual exception',
+    },
+
     'RT::Client::REST::UnknownCustomFieldException' => {
         isa         => 'RT::Client::REST::RTException',
         description => 'Unknown custom field',
@@ -61,6 +66,32 @@ use Exception::Class (
     'RT::Client::REST::InvalidQueryException' => {
         isa         => 'RT::Client::REST::RTException',
         description => 'Invalid query (server could not parse it)',
+    },
+
+    'RT::Client::REST::CouldNotSetAttributeException' => {
+        isa         => 'RT::Client::REST::UpdateException',
+        description => 'Attribute could not be updated with a new value',
+    },
+
+    'RT::Client::REST::InvalidEmailAddressException' => {
+        isa         => 'RT::Client::REST::UpdateException',
+        description => 'Invalid e-mail address',
+    },
+
+    'RT::Client::REST::AlreadyCurrentValueException' => {
+        isa         => 'RT::Client::REST::UpdateException',
+        description => 'The attribute you are trying to update already has '.
+                       'this value',
+    },
+
+    'RT::Client::REST::ImmutableFieldException' => {
+        isa         => 'RT::Client::REST::UpdateException',
+        description => 'Trying to update an immutable field',
+    },
+
+    'RT::Client::REST::IllegalValueException' => {
+        isa         => 'RT::Client::REST::UpdateException',
+        description => 'Illegal value',
     },
 
     'RT::Client::REST::UnknownRTException' => {
@@ -78,7 +109,7 @@ use Exception::Class (
 sub _rt_content_to_exception {
     my ($self, $content) = @_;
 
-    if ($content =~ /not found|does not exist/) {
+    if ($content =~ /not found|\d+ does not exist|[Ii]nvalid attachment id/) {
         return 'RT::Client::REST::ObjectNotFoundException';
     } elsif ($content =~ /not create/) {
         return 'RT::Client::REST::CouldNotCreateObjectException';
@@ -86,6 +117,16 @@ sub _rt_content_to_exception {
         return 'RT::Client::REST::UnknownCustomFieldException';
     } elsif ($content =~ /[Ii]nvalid query/) {
         return 'RT::Client::REST::InvalidQueryException';
+    } elsif ($content =~ /could not be set to/) {
+        return 'RT::Client::REST::CouldNotSetAttributeException';
+    } elsif ($content =~ /not a valid email address/) {
+        return 'RT::Client::REST::InvalidEmailAddressException';
+    } elsif ($content =~ /is already the current value/) {
+        return 'RT::Client::REST::AlreadyCurrentValueException';
+    } elsif ($content =~ /[Ii]mmutable field/) {
+        return 'RT::Client::REST::ImmutableFieldException';
+    } elsif ($content =~ /[Ii]llegal value/) {
+        return 'RT::Client::REST::IllegalValueException';
     } else {
         return 'RT::Client::REST::UnknownRTException';
     }
@@ -100,3 +141,132 @@ sub _rt_content_to_exception {
 }
 
 1;
+
+__END__
+
+=head1 NAME
+
+RT::Client::REST::Exception -- exceptions thrown by RT::Client::REST
+methods.
+
+=head1 DESCRIPTION
+
+These are exceptions that are thrown by various L<RT::Client::REST>
+methods.
+
+=head1 EXCEPTION HIERARCHY
+
+=over 2
+
+=item B<RT::Client::REST::Exception>
+
+This exception is virtual -- it is never thrown.  It is used to group
+all the exceptions in this category.
+
+=over 2
+
+=item B<RT::Client::REST::OddNumberOfArgumentsException>
+
+This means that the method you called wants key-value pairs.
+
+=item B<RT::Client::REST::InvaildObjectTypeException>
+
+Thrown when you specify an invalid type to C<show()>, C<edit()>, or
+C<search()> methods.
+
+=item B<RT::Client::REST::MalformedRTResponseException>
+
+RT server sent response that we cannot parse.  This may very well mean
+a bug in this client, so if you get this exception, some debug information
+mailed to the author would be appreciated.
+
+=item B<RT::Client::REST::InvalidParameterValueException>
+
+Invalid value for comments, link types, object IDs, etc.
+
+=item B<RT::Client::REST::RTException>
+
+This is a virtual exception and is never thrown.  It is used to group
+exceptions thrown because RT server returns an error.
+
+=over 2
+
+=item B<RT::Client::REST::ObjectNotFoundException>
+
+One or more of the specified objects was not found.
+
+=item B<RT::Client::REST::AuthenticationFailureException>
+
+Incorrect username or password.
+
+=item B<RT::Client::REST::UpdateException>
+
+This is a virtual exception.  It is used to group exceptions thrown when
+RT server returns an error trying to update an object.
+
+=over 2
+
+=item B<RT::Client::REST::CouldNotSetAttributeException>
+
+For one or another reason, attribute could not be updated with the new
+value.
+
+=item B<RT::Client::REST::InvalidEmailAddressException>
+
+Invalid e-mail address specified.
+
+=item B<RT::Client::REST::AlreadyCurrentValueException>
+
+The attribute you are trying to update already has this value.  I do not
+know why RT insists on treating this as an exception, but since it does so,
+so should the client.  You can probably safely catch and throw away this
+exception in your code.
+
+=item B<RT::Client::REST::ImmutableFieldException>
+
+Trying to update an immutable field (such as "last_updated", for
+example).
+
+=item B<RT::Client::REST::IllegalValueException>
+
+Illegal value for attribute was specified.
+
+=back
+
+=item B<RT::Client::REST::UnknownCustomFieldException>
+
+Unknown custom field was specified in the request.
+
+=item B<RT::Client::REST::InvalidQueryException>
+
+Server could not parse the search query.
+
+=item B<RT::Client::REST::UnknownRTException>
+
+Some other RT exception that the driver cannot recognize.
+
+=back
+
+=back
+
+=back
+
+=head1 METHODS
+
+=over 2
+
+=item B<_rt_content_to_exception>
+
+Translate error string returned by RT server into exception class name.
+
+=back
+
+=head1 SEE ALSO
+
+L<RT::Client::REST>.
+
+=head1 AUTHOR
+
+Dmitri Tikhonov <dtikhonov@vonage.com>
+
+=cut

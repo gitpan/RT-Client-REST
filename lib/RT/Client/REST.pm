@@ -1,4 +1,4 @@
-# $Id: REST.pm 26 2006-07-28 21:01:08Z dtikhonov $
+# $Id: REST.pm 53 2006-08-01 15:17:22Z dtikhonov $
 # RT::Client::REST
 #
 # Dmitri Tikhonov <dtikhonov@vonage.com>
@@ -23,7 +23,7 @@ use strict;
 use warnings;
 
 use vars qw/$VERSION/;
-$VERSION = '0.13';
+$VERSION = '0.15';
 
 use LWP;
 use HTTP::Cookies;
@@ -64,13 +64,61 @@ sub show {
     my %opts = @_;
 
     my $type = $self->_valid_type(delete($opts{type}));
-    my $objects = $self->_valid_objects(delete($opts{objects}));
+    my $id = $self->_valid_numeric_object_id(delete($opts{id}));
 
-    my $r = $self->_submit('show', {
-        id => [ map { $type . '/' . $_ } @$objects ],
-    });
+    my $form = form_parse($self->_submit("$type/$id")->content);
+    my ($c, $o, $k, $e) = @{$$form[0]};
 
-    return map { $$_[2] } @{form_parse($r->content)};
+    if (!@$o && $c) {
+        RT::Client::REST::Exception->_rt_content_to_exception($c)->throw;
+    }
+
+    return $k;
+}
+
+sub get_attachment_ids {
+    my $self = shift;
+
+    $self->_assert_even(@_);
+
+    my %opts = @_;
+
+    my $type = $self->_valid_type(delete($opts{type}) || 'ticket');
+    my $id = $self->_valid_numeric_object_id(delete($opts{id}));
+
+    my $form = form_parse(
+        $self->_submit("$type/$id/attachments/")->content
+    );
+    my ($c, $o, $k, $e) = @{$$form[0]};
+
+    if (!@$o && $c) {
+        RT::Client::REST::Exception->_rt_content_to_exception($c)->throw;
+    }
+
+    return $k->{Attachments} =~ m/(\d+):/mg;
+}
+
+sub get_attachment {
+    my $self = shift;
+
+    $self->_assert_even(@_);
+
+    my %opts = @_;
+
+    my $type = $self->_valid_type(delete($opts{type}) || 'ticket');
+    my $parent_id = $self->_valid_numeric_object_id(delete($opts{parent_id}));
+    my $id = $self->_valid_numeric_object_id(delete($opts{id}));
+
+    my $form = form_parse(
+        $self->_submit("$type/$parent_id/attachments/$id")->content
+    );
+    my ($c, $o, $k, $e) = @{$$form[0]};
+
+    if (!@$o && $c) {
+        RT::Client::REST::Exception->_rt_content_to_exception($c)->throw;
+    }
+
+    return $k;
 }
 
 sub search {
@@ -98,23 +146,18 @@ sub edit {
     my %opts = @_;
 
     my $type = $self->_valid_type(delete($opts{type}));
-    my $objects = $self->_valid_objects(delete($opts{objects}));
+    my $id = $self->_valid_numeric_object_id(delete($opts{id}));
 
-    my (%set);
+    my %set;
     if (defined(my $set = delete($opts{set}))) {
         while (my ($k, $v) = each(%$set)) {
             vpush(\%set, lc($k), $v);
         }
     }
-
-    my @forms;
-    for my $obj (@$objects) {
-        my %set = (%set, id => "$type/$obj");
-        push @forms, ['', [keys %set], \%set]
-    }
+    $set{id} = "$type/$id";
 
     my $r = $self->_submit('edit', {
-        content => form_compose(\@forms),
+        content => form_compose([['', [keys %set], \%set]])
     });
 
     # This seems to be a bug on the server side: returning 200 Ok when
@@ -144,7 +187,7 @@ sub comment {
     my %opts = @_;
     my $action = $self->_valid_comment_action(
         delete($opts{comment_action}) || 'comment');
-    my $ticket_id = $self->_valid_numeric_ticket_id(delete($opts{ticket_id}));
+    my $ticket_id = $self->_valid_numeric_object_id(delete($opts{ticket_id}));
     my $msg = $self->_valid_comment_message(delete($opts{message}));
 
     my @objects = ("Ticket", "Action", "Text");
@@ -179,7 +222,7 @@ sub merge_tickets {
     my $self = shift;
     $self->_assert_even(@_);
     my %opts = @_;
-    my ($src, $dst) = map { $self->_valid_numeric_ticket_id($_) }
+    my ($src, $dst) = map { $self->_valid_numeric_object_id($_) }
         @opts{qw(src dst)};
     $self->_submit("ticket/merge/$src", { into => $dst});
     return;
@@ -189,7 +232,7 @@ sub link_tickets {
     my $self = shift;
     $self->_assert_even(@_);
     my %opts = @_;
-    my ($src, $dst) = map { $self->_valid_numeric_ticket_id($_) }
+    my ($src, $dst) = map { $self->_valid_numeric_object_id($_) }
         @opts{qw(src dst)};
     my $ltype = $self->_valid_link_type(delete($opts{link_type}));
     my $del = (exists($opts{'unlink'}) ? 1 : '');
@@ -350,12 +393,12 @@ sub _valid_objects {
     return $objects;
 }
 
-sub _valid_numeric_ticket_id {
+sub _valid_numeric_object_id {
     my ($self, $id) = @_;
 
     unless ($id =~ m/^\d+$/) {
         RT::Client::REST::InvalidParameterValueException->throw(
-            "'$id' is not a valid numeric ticket ID",
+            "'$id' is not a valid numeric object ID",
         );
     }
 
@@ -436,8 +479,8 @@ RT::Client::REST -- talk to RT installation using REST protocol.
   );
 
   try {
-    # Get tickets 10 through 20
-    @tx = $rt->show(type => 'ticket', objects => [10 .. 20]);
+    # Get ticket #10
+    $ticket = $rt->show(type => 'ticket', id => 10);
   } catch RT::Client::REST::Exception with {
     # something went wrong.
   };
@@ -495,16 +538,15 @@ be used as regular methods after your object is instantiated.
 
 =back
 
-=item show (type => $type, objects => \@ids)
+=item show (type => $type, id => $id)
 
-Get a list of objects of type B<4type>.  One or more IDs should be specified.
-This returns an array of hashrefs (I don't get "forms", so I just take the
-third element and return it).
+Return a reference to a hash with key-value pair specifying object C<$id>
+of type C<$type>.
 
-=item edit (type => $type, objects => \@ids, set => { status => 1 })
+=item edit (type => $type, id => $id, set => { status => 1 })
 
-For all objects of type B<$type> whose ID is in B<@ids>, set fields as
-prescribed by the B<set> parameter.
+Set fields specified in parameter B<set> in object C<$id> of type
+C<$type>.
 
 =item create (type => $type, set => \%params)
 
@@ -572,6 +614,16 @@ of e-mail addresses:
 Add correspondence to ticket ID B<$id>.  Takes optional B<cc> and
 B<bcc> parameters (see C<comment> above).
 
+=item get_attachment_ids (id => $id)
+
+Get a list of numeric attachment IDs associated with ticket C<$id>.
+
+=item get_attachment (parent_id => $parent_id, id => $id)
+
+Returns reference to a hash with key-value pair describing attachment
+C<$id> of ticket C<$parent_id>.  (parent_id because -- who knows? --
+maybe attachments won't be just for tickets anymore in the future).
+
 =item merge_tickets (src => $id1, dst => $id2)
 
 Merge ticket B<$id1> into ticket B<$id2>.
@@ -619,68 +671,18 @@ Remove a link between two tickets (see B<link_tickets()>)
 When an error occurs, this module will throw exceptions.  I recommend
 using Error.pm's B<try{}> mechanism to catch them, but you may also use
 simple B<eval{}>.  The former will give you flexibility to catch just the
-exceptions you want.  Here is the hierarchy:
+exceptions you want.
 
-=over 2
+Please see L<RT::Client::REST::Exception> for the full listing and
+description of all the exceptions.
 
-=item
+=head1 LIMITATIONS
 
-RT::Client::REST::Exception
-
-=over 2
-
-=item
-
-RT::Client::REST::OddNumberOfArgumentsException
-
-=item
-
-RT::Client::REST::InvaildObjectTypeException
-
-=item
-
-RT::Client::REST::MalformedRTResponseException
-
-=item
-
-RT::Client::REST::InvalidParameterValueException
-
-=item
-
-B<RT::Client::REST::RTException>.  This exception is virtual; only its
-subclasses are thrown.  This group is used when RT REST interface returns
-an error message.  Exceptions derived from it all have a custom field
-B<code> which can be used to get RT's numeric error code.
-
-=over 2
-
-=item
-
-RT::Client::REST::ObjectNotFoundException
-
-=item
-
-RT::Client::REST::CouldNotCreateObjectException
-
-=item
-
-RT::Client::REST::AuthenticationFailureException
-
-=item
-
-RT::Client::REST::UnknownRTException
-
-=back
-
-=item
-
-B<RT::Client::REST::HTTPException>.  This is thrown if anything besides
-B<200 OK> code is returned by the underlying HTTP protocol.  Custom field
-B<code> can be used to access the actual HTTP status code.
-
-=back
-
-=back
+Beginning with version 0.14, methods C<edit()> and C<show()> only support
+operating on a single object.  This is a conscious departure from semantics
+offered by the original tool, as I would like to have a precise behavior
+for exceptions.  If you want to operate on a whole bunch of objects, please
+use a loop.
 
 =head1 DEPENDENCIES
 
@@ -710,27 +712,17 @@ HTTP::Request::Common
 
 =back
 
+=head1 SEE ALSO
+
+L<RT::Client::REST::Exception>
+
 =head1 BUGS
 
 Most likely.  Please report.
 
-=head1 TODO
-
-=over 2
-
-=item
-
-Add the rest of the features available in /usr/bin/rt.
-
-=item
-
-Implement /usr/bin/rt using this RT::Client::REST.
-
-=back
-
 =head1 VERSION
 
-This is version 0.13 of B<RT::Client::REST>.
+This is version 0.14 of B<RT::Client::REST>.
 
 =head1 AUTHORS
 
