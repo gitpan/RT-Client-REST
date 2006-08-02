@@ -1,4 +1,4 @@
-# $Id: Ticket.pm 12 2006-07-25 16:34:01Z dmitri $
+# $Id: Attachment.pm 71 2006-08-02 17:20:53Z dtikhonov $
 #
 # RT::Client::REST::Attachment -- attachment object representation.
 

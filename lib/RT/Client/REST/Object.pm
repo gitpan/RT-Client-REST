@@ -1,4 +1,4 @@
-# $Id: Object.pm 44 2006-08-01 15:05:33Z dtikhonov $
+# $Id: Object.pm 77 2006-08-02 17:31:16Z dtikhonov $
 
 package RT::Client::REST::Object;
 
@@ -41,11 +41,11 @@ use strict;
 use warnings;
 
 use vars qw($VERSION);
-$VERSION = 0.02;
+$VERSION = 0.03;
 
 use Error qw(:try);
 use Params::Validate;
-use RT::Client::REST::Object::Exception 0.02;
+use RT::Client::REST::Object::Exception 0.04;
 use RT::Client::REST::SearchResult 0.02;
 
 =item new
@@ -300,13 +300,10 @@ sub from_form {
 
 sub retrieve {
     my $self = shift;
-    my $rt = $self->rt;
 
-    unless (defined($self->id)) {
-        RT::Client::REST::Object::InvalidValueException->throw(
-            "'" . ref($self) . "' must have 'id' in order to retrieve it",
-        );
-    }
+    $self->_assert_rt_and_id;
+
+    my $rt = $self->rt;
 
     my ($hash) = $rt->show(type => $self->rt_type, id => $self->id);
     $self->from_form($hash);
@@ -318,6 +315,8 @@ sub retrieve {
 
 sub store {
     my $self = shift;
+
+    $self->_assert_rt;
 
     my $rt = $self->rt;
 
@@ -346,6 +345,8 @@ sub search {
     if (@_ & 1) {
         RT::Client::REST::Object::OddNumberOfArgumentsException->throw;
     }
+
+    $self->_assert_rt;
 
     my %opts = @_;
 
@@ -406,7 +407,11 @@ sub search {
     );
 }
 
-sub count { shift->search(@_)->count }
+sub count {
+    my $self = shift;
+    $self->_assert_rt;
+    return $self->search(@_)->count;
+}
 
 sub _attr2keyword {
     my ($self, $attr) = @_;
@@ -423,6 +428,34 @@ sub _attr2keyword {
     return (exists($attributes->{$attr}{rest_name}) ?
             $attributes->{$attr}{rest_name} :
             ucfirst($attr));
+}
+
+sub _assert_rt_and_id {
+    my $self = shift;
+    my $method = shift || (caller(1))[3];
+
+    unless (defined($self->rt)) {
+        RT::Client::REST::Object::RequiredAttributeUnsetException
+            ->throw("Cannot '$method': 'rt' attribute of the object ".
+                    "is not set");
+    }
+
+    unless (defined($self->id)) {
+        RT::Client::REST::Object::RequiredAttributeUnsetException
+            ->throw("Cannot '$method': 'id' attribute of the object ".
+                    "is not set");
+    }
+}
+
+sub _assert_rt {
+    my $self = shift;
+    my $method = shift || (caller(1))[3];
+
+    unless (defined($self->rt)) {
+        RT::Client::REST::Object::RequiredAttributeUnsetException
+            ->throw("Cannot '$method': 'rt' attribute of the object ".
+                    "is not set");
+    }
 }
 
 =item param($name, $value)

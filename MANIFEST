@@ -12,6 +12,7 @@ examples/show_attachment.pl
 examples/show_ticket.pl
 examples/show_transaction.pl
 examples/show_user.pl
+examples/take_ticket.pl
 lib/RT/Client/REST/Attachment.pm
 lib/RT/Client/REST/Exception.pm
 lib/RT/Client/REST/Forms.pm

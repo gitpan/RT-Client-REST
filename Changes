@@ -1,5 +1,42 @@
-# $Id: Changes 70 2006-08-01 22:00:24Z dtikhonov $
+# $Id: Changes 85 2006-08-02 17:39:35Z dtikhonov $
 Revision history for Perl module RT::Client::REST
+
+0.18    Wed Aug  2 2006 "Dmitri Tikhonov" <dtikhonov@vonage.com>
+  ! lib/RT/Client/REST.pm
+  ! t/10-core.t
+    * Added methods 'take', 'untake', and 'steal'.
+    * If attribute 'server' is unset,
+      RT::Client::REST::RequiredAttributeUnsetException will be thrown
+      when a REST method is called.
+
+  ! lib/RT/Client/REST/Exception.pm
+    * Added exceptions:
+      * RT::Client::REST::RequiredAttributeUnsetException
+      * RT::Client::REST::AlreadyTicketOwnerException
+
+  ! lib/RT/Client/REST/Object.pm
+  ! t/20-object.t
+    * Added convenience assertions methods:
+      * _assert_rt_and_id
+      * _assert_rt
+    * Added assertions to methods 'retrieve', 'store', and 'count'.
+
+  ! lib/RT/Client/REST/Object/Exception.pm
+    * Added exceptions:
+      * RT::Client::REST::Object::NoopOperationException
+      *	RT::Client::REST::Object::RequiredAttributeUnsetException
+
+  ! lib/RT/Client/REST/Ticket.pm
+  ! t/22-ticket.t
+    * Added methods 'take', 'untake', and 'steal'
+    * Added assertions in a couple of places
+    * Fixed up POD.
+
+  + examples/take_ticket.pl
+    * Taking a ticket.
+
+  ! MANIFEST
+    * Added new example.
 
 0.17    Tue Aug  1 2006 "Dmitri Tikhonov" <dtikhonov@vonage.com>
   + lib/RT/Client/REST/Transaction.pm

@@ -1,4 +1,4 @@
-# $Id: Exception.pm 41 2006-08-01 14:59:39Z dtikhonov $
+# $Id: Exception.pm 78 2006-08-02 17:32:26Z dtikhonov $
 # RT::Client::REST::Object::Exception
 
 package RT::Client::REST::Object::Exception;
@@ -7,7 +7,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION);
-$VERSION = 0.03;
+$VERSION = 0.04;
 
 use Error;
 
@@ -40,6 +40,17 @@ use Exception::Class (
     'RT::Client::REST::Object::IllegalMethodException' => {
         isa         => __PACKAGE__,
         description => "Illegal method is called on the object",
+    },
+
+    'RT::Client::REST::Object::NoopOperationException' => {
+        isa         => __PACKAGE__,
+        description => "The operation was a noop",
+    },
+
+    'RT::Client::REST::Object::RequiredAttributeUnsetException' => {
+        isa         => __PACKAGE__,
+        description => "An operation failed because a required attribute " .
+            "was not set in the object",
     },
 );
 

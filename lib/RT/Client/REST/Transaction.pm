@@ -1,4 +1,4 @@
-# $Id: Ticket.pm 12 2006-07-25 16:34:01Z dmitri $
+# $Id: Transaction.pm 74 2006-08-02 17:23:08Z dtikhonov $
 #
 # RT::Client::REST::Transaction -- transaction object representation.
 

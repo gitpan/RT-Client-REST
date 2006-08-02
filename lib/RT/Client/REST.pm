@@ -1,4 +1,4 @@
-# $Id: REST.pm 64 2006-08-01 21:54:25Z dtikhonov $
+# $Id: REST.pm 75 2006-08-02 17:25:26Z dtikhonov $
 # RT::Client::REST
 #
 # Dmitri Tikhonov <dtikhonov@vonage.com>
@@ -23,12 +23,12 @@ use strict;
 use warnings;
 
 use vars qw/$VERSION/;
-$VERSION = '0.17';
+$VERSION = '0.18';
 
 use LWP;
 use HTTP::Cookies;
 use HTTP::Request::Common;
-use RT::Client::REST::Exception;
+use RT::Client::REST::Exception 0.06;
 use RT::Client::REST::Forms;
 
 # Generate accessors/mutators
@@ -327,6 +327,32 @@ sub link_tickets {
 
 sub unlink_tickets { shift->link_tickets(@_, unlink => 1) }
 
+sub _ticket_action {
+    my $self = shift;
+
+    $self->_assert_even(@_);
+
+    my %opts = @_;
+
+    my $id = delete $opts{id};
+    my $action = delete $opts{action};
+
+    my $text = form_compose([[ '', ['Action'], { Action => $action }, ]]);
+
+    my $form = form_parse(
+        $self->_submit("/ticket/$id/take", { content => $text })->content
+    );
+    my ($c, $o, $k, $e) = @{$$form[0]};
+
+    if ($e) {
+        RT::Client::REST::Exception->_rt_content_to_exception($c)->throw;
+    }
+}
+
+sub take { shift->_ticket_action(@_, action => 'take') }
+sub untake { shift->_ticket_action(@_, action => 'untake') }
+sub steal { shift->_ticket_action(@_, action => 'steal') }
+
 sub _submit {
     my ($self, $uri, $content) = @_;
     my ($req, $data);
@@ -548,7 +574,18 @@ sub _assert_even {
         "odd number of arguments passed") if @_ & 1;
 }
 
-sub _rest { shift->server . '/REST/1.0' }
+sub _rest {
+    my $self = shift;
+    my $server = $self->server;
+
+    unless (defined($server)) {
+        RT::Client::REST::RequiredAttributeUnsetException->throw(
+            "'server' attribute is not set",
+        );
+    }
+
+    return $server . '/REST/1.0';
+}
 
 sub _uri { shift->_rest . '/' . shift }
 
@@ -827,6 +864,24 @@ MemberOf
 
 Remove a link between two tickets (see B<link_tickets()>)
 
+=item take (id => $id)
+
+Take ticket C<$id>.
+This will throw C<RT::Client::REST::AlreadyTicketOwnerException> if you are
+already the ticket owner.
+
+=item untake (id => $id)
+
+Untake ticket C<$id>.
+This will throw C<RT::Client::REST::AlreadyTicketOwnerException> if Nobody
+is already the ticket owner.
+
+=item steal (id => $id)
+
+Steal ticket C<$id>.
+This will throw C<RT::Client::REST::AlreadyTicketOwnerException> if you are
+already the ticket owner.
+
 =back
 
 =head1 EXCEPTIONS
@@ -885,7 +940,7 @@ Most likely.  Please report.
 
 =head1 VERSION
 
-This is version 0.14 of B<RT::Client::REST>.
+This is version 0.18 of B<RT::Client::REST>.
 
 =head1 AUTHORS
 

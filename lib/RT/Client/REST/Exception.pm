@@ -1,4 +1,4 @@
-# $Id: Exception.pm 55 2006-08-01 15:54:58Z dtikhonov $
+# $Id: Exception.pm 76 2006-08-02 17:28:42Z dtikhonov $
 #
 # We are going to throw exceptions, because we're cool like that.
 package RT::Client::REST::Exception;
@@ -7,7 +7,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION);
-$VERSION = 0.05;
+$VERSION = 0.06;
 
 use Error;
 
@@ -31,6 +31,13 @@ use Exception::Class (
         isa         => __PACKAGE__,
         description => "This happens when you feed me bad values",
     },
+
+    'RT::Client::REST::RequiredAttributeUnsetException' => {
+        isa         => __PACKAGE__,
+        description => "An operation failed because a required attribute " .
+                       "was not set in the object",
+    },
+
 
     'RT::Client::REST::RTException' => {
         isa         => __PACKAGE__,
@@ -99,6 +106,12 @@ use Exception::Class (
         description => 'You are not authorized to perform this action',
     },
 
+    'RT::Client::REST::AlreadyTicketOwnerException' => {
+        isa         => 'RT::Client::REST::RTException',
+        description => 'The owner you are trying to assign to a ticket ' .
+            'is already the owner',
+    },
+
     'RT::Client::REST::UnknownRTException' => {
         isa         => 'RT::Client::REST::RTException',
         description => 'Some other RT error',
@@ -134,6 +147,10 @@ sub _get_exception_class {
         return 'RT::Client::REST::IllegalValueException';
     } elsif ($content =~ /[Yy]ou are not allowed/) {
         return 'RT::Client::REST::UnauthorizedActionException';
+    } elsif ($content =~ /[Yy]ou already own this ticket/ ||
+             $content =~ /[Tt]hat user already owns that ticket/)
+    {
+        return 'RT::Client::REST::AlreadyTicketOwnerException';
     } else {
         return 'RT::Client::REST::UnknownRTException';
     }
@@ -191,6 +208,10 @@ This means that the method you called wants key-value pairs.
 
 Thrown when you specify an invalid type to C<show()>, C<edit()>, or
 C<search()> methods.
+
+=item B<RT::Client::REST::RequiredAttributeUnsetException>
+
+An operation failed because a required attribute was not set in the object.
 
 =item B<RT::Client::REST::MalformedRTResponseException>
 
@@ -262,6 +283,12 @@ Server could not parse the search query.
 =item B<RT::Client::REST::UnauthorizedActionException>
 
 You are not authorized to perform this action.
+
+=item B<RT::Client::REST::AlreadyTicketOwnerException>
+
+The owner you are trying to assign to a ticket is already the owner.
+This exception is usually thrown by methods C<take()>, C<untake>, and
+C<steal>, if the operation is a noop.
 
 =item B<RT::Client::REST::UnknownRTException>
 

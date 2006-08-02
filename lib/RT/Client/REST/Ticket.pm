@@ -1,4 +1,4 @@
-# $Id: Ticket.pm 66 2006-08-01 21:56:55Z dtikhonov $
+# $Id: Ticket.pm 79 2006-08-02 17:33:43Z dtikhonov $
 #
 # RT::Client::REST::Ticket -- ticket object representation.
 
@@ -8,13 +8,14 @@ use strict;
 use warnings;
 
 use vars qw($VERSION);
-$VERSION = 0.04;
+$VERSION = 0.05;
 
+use Error qw(:try);
 use Params::Validate qw(:types);
-use RT::Client::REST 0.17;
+use RT::Client::REST 0.18;
 use RT::Client::REST::Attachment;
 use RT::Client::REST::Object 0.01;
-use RT::Client::REST::Object::Exception 0.01;
+use RT::Client::REST::Object::Exception 0.04;
 use RT::Client::REST::SearchResult 0.02;
 use RT::Client::REST::Transaction;
 use base 'RT::Client::REST::Object';
@@ -303,7 +304,7 @@ Search for tickets that meet specific conditions.
 
 =over 2
 
-=item B<comment(message => $message, %opts)>
+=item B<comment> (message => $message, %opts)
 
 Comment on this ticket with message $message.  C<%opts> is a list of
 key-value pairs as follows:
@@ -321,7 +322,7 @@ reference).
 
 =back
 
-=item B<correspond(message => $message, %opts)>
+=item B<correspond> (message => $message, %opts)
 
 Add correspondence to the ticket.  Takes exactly the same arguments
 as the B<comment> method above.
@@ -338,6 +339,8 @@ for my $method (qw(comment correspond)) {
         if (@_ & 1) {
             RT::Client::REST::Object::OddNumberOfArgumentsException->throw;
         }
+
+        $self->_assert_rt_and_id($method);
 
         my %opts = @_;
 
@@ -367,6 +370,8 @@ to get at objects of type L<RT::Client::REST::Attachment>.
 sub attachments {
     my $self = shift;
     
+    $self->_assert_rt_and_id;
+
     RT::Client::REST::SearchResult->new(
         ids => [ $self->rt->get_attachment_ids(id => $self->id) ],
         retrieve => sub {
@@ -402,6 +407,8 @@ sub transactions {
         RT::Client::REST::Object::OddNumberOfArgumentsException->throw;
     }
 
+    $self->_assert_rt_and_id;
+
     my %opts = @_;
     my %params = (
         parent_id => $self->id,
@@ -420,6 +427,45 @@ sub transactions {
             )->retrieve;
         },
     );
+}
+
+=item B<take>
+
+Take this ticket.
+If you already the owner of this ticket,
+C<RT::Client::REST::Object::NoopOperationException> will be thrown.
+
+=item B<untake>
+
+Untake this ticket.
+If Nobody is already the owner of this ticket,
+C<RT::Client::REST::Object::NoopOperationException> will be thrown.
+
+=item B<steal>
+
+Steal this ticket.
+If you already the owner of this ticket,
+C<RT::Client::REST::Object::NoopOperationException> will be thrown.
+
+=cut
+
+for my $method (qw(take untake steal)) {
+    no strict 'refs';
+    *$method = sub {
+        my $self = shift;
+
+        $self->_assert_rt_and_id($method);
+
+        try {
+            $self->rt->$method(id => $self->id);
+        } catch RT::Client::REST::AlreadyTicketOwnerException with {
+            # Rename the exception.
+            RT::Client::REST::Object::NoopOperationException
+                ->throw(shift->message);
+        };
+
+        return;
+    };
 }
 
 =back

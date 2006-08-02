@@ -1,4 +1,4 @@
-# $Id: Ticket.pm 52 2006-08-01 15:16:38Z dtikhonov $
+# $Id: User.pm 72 2006-08-02 17:21:27Z dtikhonov $
 #
 # RT::Client::REST::User -- user object representation.
 
