@@ -1,5 +1,10 @@
-# $Id: Changes 85 2006-08-02 17:39:35Z dtikhonov $
+# $Id: Changes 87 2006-08-02 18:04:36Z dtikhonov $
 Revision history for Perl module RT::Client::REST
+
+0.19    Wed Aug  2 2006 "Dmitri Tikhonov" <dtikhonov@vonage.com>
+  ! lib/RT/Client/REST.pm
+    * Fixed a bug in 'create' and 'edit' -- introduced in 0.14 when
+      APIs changed.  (Note to self - need a full-blown test suite).
 
 0.18    Wed Aug  2 2006 "Dmitri Tikhonov" <dtikhonov@vonage.com>
   ! lib/RT/Client/REST.pm

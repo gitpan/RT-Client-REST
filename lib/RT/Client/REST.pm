@@ -1,4 +1,4 @@
-# $Id: REST.pm 75 2006-08-02 17:25:26Z dtikhonov $
+# $Id: REST.pm 86 2006-08-02 18:04:19Z dtikhonov $
 # RT::Client::REST
 #
 # Dmitri Tikhonov <dtikhonov@vonage.com>
@@ -23,7 +23,7 @@ use strict;
 use warnings;
 
 use vars qw/$VERSION/;
-$VERSION = '0.18';
+$VERSION = '0.19';
 
 use LWP;
 use HTTP::Cookies;
@@ -224,7 +224,11 @@ sub edit {
     my %opts = @_;
 
     my $type = $self->_valid_type(delete($opts{type}));
-    my $id = $self->_valid_numeric_object_id(delete($opts{id}));
+
+    my $id = delete($opts{id});
+    unless ('new' eq $id) {
+        $id = $self->_valid_numeric_object_id($id);
+    }
 
     my %set;
     if (defined(my $set = delete($opts{set}))) {
@@ -257,7 +261,7 @@ sub edit {
     }
 }
 
-sub create { shift->edit(@_, objects => ['new']) }
+sub create { shift->edit(@_, id => 'new') }
 
 sub comment {
     my $self = shift;
