@@ -1,5 +1,24 @@
-# $Id: Changes 87 2006-08-02 18:04:36Z dtikhonov $
+# $Id: Changes 94 2006-08-02 21:34:06Z dtikhonov $
 Revision history for Perl module RT::Client::REST
+
+0.20    Wed Aug  2 2006 "Dmitri Tikhonov" <dtikhonov@vonage.com>
+  Added support for queues.
+
+  ! lib/RT/Client/REST.pm
+    * Modified method "show()" to accept non-numeric IDs for objects
+      of type 'queue'.
+
+  + lib/RT/Client/REST/Queue.pm
+  + t/25-queue.t
+    * Queue support.
+
+  + examples/show_queue.pl
+  + examples/create_user.pl
+  + examples/list_tickets.pl
+    * More examples.
+
+  ! MANIFEST
+    * Added new files.
 
 0.19    Wed Aug  2 2006 "Dmitri Tikhonov" <dtikhonov@vonage.com>
   ! lib/RT/Client/REST.pm

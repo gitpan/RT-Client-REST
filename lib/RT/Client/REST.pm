@@ -1,4 +1,4 @@
-# $Id: REST.pm 86 2006-08-02 18:04:19Z dtikhonov $
+# $Id: REST.pm 88 2006-08-02 21:30:04Z dtikhonov $
 # RT::Client::REST
 #
 # Dmitri Tikhonov <dtikhonov@vonage.com>
@@ -23,7 +23,7 @@ use strict;
 use warnings;
 
 use vars qw/$VERSION/;
-$VERSION = '0.19';
+$VERSION = '0.20';
 
 use LWP;
 use HTTP::Cookies;
@@ -66,8 +66,8 @@ sub show {
     my $type = $self->_valid_type(delete($opts{type}));
     my $id;
 
-    if ('user' eq $type) {
-        # User ID may be his username, not just a number.
+    if (grep { $type eq $_ } (qw(user queue))) {
+        # User or queue ID does not have to be numeric
         $id = delete($opts{id});
     } else {
         $id = $self->_valid_numeric_object_id(delete($opts{id}));
