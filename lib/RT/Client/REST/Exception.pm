@@ -1,4 +1,4 @@
-# $Id: Exception.pm 76 2006-08-02 17:28:42Z dtikhonov $
+# $Id: Exception.pm 96 2006-08-03 13:43:34Z dtikhonov $
 #
 # We are going to throw exceptions, because we're cool like that.
 package RT::Client::REST::Exception;
@@ -7,7 +7,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION);
-$VERSION = 0.06;
+$VERSION = 0.17;
 
 use Error;
 
@@ -30,6 +30,11 @@ use Exception::Class (
     'RT::Client::REST::InvalidParameterValueException'  => {
         isa         => __PACKAGE__,
         description => "This happens when you feed me bad values",
+    },
+
+    'RT::Client::REST::CannotReadAttachmentException'  => {
+        isa         => __PACKAGE__,
+        description => "Cannot read attachment",
     },
 
     'RT::Client::REST::RequiredAttributeUnsetException' => {
@@ -222,6 +227,10 @@ mailed to the author would be appreciated.
 =item B<RT::Client::REST::InvalidParameterValueException>
 
 Invalid value for comments, link types, object IDs, etc.
+
+=item B<RT::Client::REST::CannotReadAttachmentException>
+
+Cannot read attachment (thrown from methods "comment()" and "correspond").
 
 =item B<RT::Client::REST::RTException>
 

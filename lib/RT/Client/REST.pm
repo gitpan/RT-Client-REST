@@ -1,4 +1,4 @@
-# $Id: REST.pm 88 2006-08-02 21:30:04Z dtikhonov $
+# $Id: REST.pm 95 2006-08-03 13:42:43Z dtikhonov $
 # RT::Client::REST
 #
 # Dmitri Tikhonov <dtikhonov@vonage.com>
@@ -23,12 +23,12 @@ use strict;
 use warnings;
 
 use vars qw/$VERSION/;
-$VERSION = '0.20';
+$VERSION = '0.21';
 
 use LWP;
 use HTTP::Cookies;
 use HTTP::Request::Common;
-use RT::Client::REST::Exception 0.06;
+use RT::Client::REST::Exception 0.17;
 use RT::Client::REST::Forms;
 
 # Generate accessors/mutators
@@ -289,11 +289,33 @@ sub comment {
         $values{Bcc} = delete($opts{bcc});
     }
 
-    my $text = form_compose([[ '', \@objects, \%values, ]]);
+    my %data;
+    if (exists($opts{attachments})) {
+        my $files = delete($opts{attachments});
+        unless ('ARRAY' eq ref($files)) {
+            RT::Client::REST::InvalidParameterValueException->throw(
+                "'attachments' must be an array reference",
+            );
+        }
+        push @objects, "Attachment";
+        $values{Attachment} = $files;
 
-    $self->_submit("ticket/$ticket_id/comment", {
-        content => $text,
-    });
+        for (my $i = 0; $i < @$files; ++$i) {
+            unless (-f $files->[$i] && -r _) {
+                RT::Client::REST::CannotReadAttachmentException->throw(
+                    "File '" . $files->[$i] . "' is not readable",
+                );
+            }
+
+            my $index = $i + 1;
+            $data{"attachment_$index"} = bless([ $files->[$i] ], "Attachment");
+        }
+    }
+
+    my $text = form_compose([[ '', \@objects, \%values, ]]);
+    $data{content} = $text;
+
+    $self->_submit("ticket/$ticket_id/comment", \%data);
 
     return;
 }
@@ -741,7 +763,8 @@ using C<show()> method:
 
 Comment on a ticket with ID B<$id>.
 Optionally takes arguments B<cc> and B<bcc> which are references to lists
-of e-mail addresses:
+of e-mail addresses and B<attachments> which is a list of filenames to
+be attached to the ticket.
 
   $rt->comment(
     ticket_id   => 5,
@@ -751,8 +774,8 @@ of e-mail addresses:
 
 =item correspond (ticket_id => $id, message => $message, %opts)
 
-Add correspondence to ticket ID B<$id>.  Takes optional B<cc> and
-B<bcc> parameters (see C<comment> above).
+Add correspondence to ticket ID B<$id>.  Takes optional B<cc>,
+B<bcc>, and B<attachments> parameters (see C<comment> above).
 
 =item get_attachment_ids (id => $id)
 
@@ -944,7 +967,7 @@ Most likely.  Please report.
 
 =head1 VERSION
 
-This is version 0.18 of B<RT::Client::REST>.
+This is version 0.21 of B<RT::Client::REST>.
 
 =head1 AUTHORS
 

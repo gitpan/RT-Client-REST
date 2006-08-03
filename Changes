@@ -1,6 +1,20 @@
 # $Id: Changes 94 2006-08-02 21:34:06Z dtikhonov $
 Revision history for Perl module RT::Client::REST
 
+0.21    Thu Aug  3 2006 "Dmitri Tikhonov" <dtikhonov@vonage.com>
+  ! lib/RT/Client/REST.pm
+    * Added support for attachments.
+
+  ! lib/RT/Client/REST/Ticket.pm
+    * Updated POD.
+
+  ! lib/RT/Client/REST/Exception.pm
+    * Added exception RT::Client::REST::CannotReadAttachmentException.
+    * Jump version to 0.17 so that CPAN indexer does not bitch.
+
+  ! t/22-ticket.t
+    * Added test for RT::Client::REST::CannotReadAttachmentException.
+
 0.20    Wed Aug  2 2006 "Dmitri Tikhonov" <dtikhonov@vonage.com>
   Added support for queues.
 

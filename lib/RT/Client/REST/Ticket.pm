@@ -1,4 +1,4 @@
-# $Id: Ticket.pm 79 2006-08-02 17:33:43Z dtikhonov $
+# $Id: Ticket.pm 97 2006-08-03 13:44:10Z dtikhonov $
 #
 # RT::Client::REST::Ticket -- ticket object representation.
 
@@ -8,7 +8,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION);
-$VERSION = 0.05;
+$VERSION = 0.06;
 
 use Error qw(:try);
 use Params::Validate qw(:types);
@@ -310,6 +310,11 @@ Comment on this ticket with message $message.  C<%opts> is a list of
 key-value pairs as follows:
 
 =over 2
+
+=item B<attachments>
+
+List of filenames (an array reference) that should be attached to the
+ticket along with the comment.
 
 =item B<cc>
 

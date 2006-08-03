@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 86;
+use Test::More tests => 88;
 use Test::Exception;
 
 use constant METHODS => (
@@ -76,6 +76,13 @@ for my $method (qw(comment correspond)) {
     throws_ok {
         $ticket->$method(message => 'abc');
     } 'RT::Client::REST::RequiredAttributeUnsetException';
+
+    throws_ok {
+        $ticket->$method(
+            message => 'abc',
+            attachments => ['- this file does not exist -'],
+        );
+    } 'RT::Client::REST::CannotReadAttachmentException';
 }
 
 for my $method (qw(attachments transactions)) {
