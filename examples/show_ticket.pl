@@ -15,16 +15,23 @@ unless (@ARGV >= 3) {
 
 my $rt = RT::Client::REST->new(
     server  => ($ENV{RTSERVER} || 'http://rt.cpan.org'),
+);
+$rt->login(
     username=> shift(@ARGV),
     password=> shift(@ARGV),
 );
 
+RT::Client::REST::Object->use_single_rt($rt);
+RT::Client::REST::Object->use_autoget(1);
+RT::Client::REST::Object->use_autosync(1);
+
 my $ticket;
 try {
     $ticket = RT::Client::REST::Ticket->new(
-        rt  => $rt,
         id  => shift(@ARGV),
-    )->retrieve;
+    );
+    $ticket->priority(20);
+    $ticket->add_admin_cc('dtikhonov@localhost');
 } catch Exception::Class::Base with {
     my $e = shift;
     die ref($e), ": ", $e->message || $e->description, "\n";

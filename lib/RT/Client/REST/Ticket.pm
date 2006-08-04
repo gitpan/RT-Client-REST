@@ -1,4 +1,4 @@
-# $Id: Ticket.pm 97 2006-08-03 13:44:10Z dtikhonov $
+# $Id: Ticket.pm 109 2006-08-04 20:53:21Z dtikhonov $
 #
 # RT::Client::REST::Ticket -- ticket object representation.
 
@@ -8,7 +8,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION);
-$VERSION = 0.06;
+$VERSION = 0.07;
 
 use Error qw(:try);
 use Params::Validate qw(:types);
@@ -379,12 +379,12 @@ sub attachments {
 
     RT::Client::REST::SearchResult->new(
         ids => [ $self->rt->get_attachment_ids(id => $self->id) ],
-        retrieve => sub {
-            return RT::Client::REST::Attachment->new(
+        object => sub {
+            RT::Client::REST::Attachment->new(
                 id => shift,
                 parent_id => $self->id,
                 rt => $self->rt,
-            )->retrieve;
+            );
         },
     );
 }
@@ -424,12 +424,12 @@ sub transactions {
     
     RT::Client::REST::SearchResult->new(
         ids => [ $self->rt->get_transaction_ids(%params) ],
-        retrieve => sub {
-            return RT::Client::REST::Transaction->new(
+        object => sub {
+            RT::Client::REST::Transaction->new(
                 id => shift,
                 parent_id => $self->id,
                 rt => $self->rt,
-            )->retrieve;
+            );
         },
     );
 }

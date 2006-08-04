@@ -1,4 +1,4 @@
-# $Id: REST.pm 102 2006-08-04 13:27:22Z dtikhonov $
+# $Id: REST.pm 106 2006-08-04 20:46:52Z dtikhonov $
 # RT::Client::REST
 #
 # Dmitri Tikhonov <dtikhonov@vonage.com>
@@ -23,8 +23,9 @@ use strict;
 use warnings;
 
 use vars qw/$VERSION/;
-$VERSION = '0.22';
+$VERSION = '0.23';
 
+use Error qw(:try);
 use LWP;
 use HTTP::Cookies;
 use HTTP::Request::Common;
@@ -32,7 +33,7 @@ use RT::Client::REST::Exception 0.17;
 use RT::Client::REST::Forms;
 
 # Generate accessors/mutators
-for my $method (qw(username password server cookie)) {
+for my $method (qw(server _cookie)) {
     no strict 'refs';
     *{__PACKAGE__ . '::' . $method} = sub {
         my $self = shift;
@@ -55,6 +56,36 @@ sub new {
 
     return $self;
 }
+
+sub login {
+    my $self = shift;
+
+    $self->_assert_even(@_);
+
+    my %opts = @_;
+    unless (defined($opts{username}) and defined($opts{password})) {
+        RT::Client::REST::InvalidParameterValueException->throw(
+            "You must provide username and password to log in",
+        );
+    }
+
+    # OK, here's how login works.  We request to see ticket 1.  We don't
+    # even care if it exists.  We watch exceptions: auth. failures and
+    # server-side errors we bubble up and ignore all others.
+    try {
+        $self->_submit("ticket/1", undef, {
+            user => $opts{username},
+            pass => $opts{password},
+        });
+    } catch RT::Client::REST::AuthenticationFailureException with {
+        shift->rethrow;
+    } catch RT::Client::REST::MalformedRTResponseException with {
+        shift->rethrow;
+    } catch Exception::Class::Base with {
+        # ignore others.
+    };
+}
+
 
 sub show {
     my $self = shift;
@@ -380,7 +411,7 @@ sub untake { shift->_ticket_action(@_, action => 'untake') }
 sub steal { shift->_ticket_action(@_, action => 'steal') }
 
 sub _submit {
-    my ($self, $uri, $content) = @_;
+    my ($self, $uri, $content, $auth) = @_;
     my ($req, $data);
     my $ua = new LWP::UserAgent(
         agent => $self->_ua_string,
@@ -411,8 +442,13 @@ sub _submit {
     }
 
     # Should we send authentication information to start a new session?
-    unless ($self->cookie) {
-        push @$data, (user => $self->username, pass => $self->password);
+    unless ($self->_cookie) {
+        unless (defined($auth)) {
+            RT::Client::REST::RequiredAttributeUnsetException->throw(
+                "You must log in first",
+            );
+        }
+        push @$data, %$auth;
     }
 
     # Now, we construct the request.
@@ -423,8 +459,8 @@ sub _submit {
         $req = GET($self->_uri($uri));
     }
     #$session->add_cookie_header($req);
-    if ($self->cookie) {
-        $self->cookie->add_cookie_header($req);
+    if ($self->_cookie) {
+        $self->_cookie->add_cookie_header($req);
     }
 
     # Then we send the request and parse the response.
@@ -458,7 +494,7 @@ sub _submit {
         if ($res->header('set-cookie')) {
             my $jar = HTTP::Cookies->new;
             $jar->extract_cookies($res);
-            $self->cookie($jar);
+            $self->_cookie($jar);
         }
 
         if (!$res->is_success) {
@@ -634,11 +670,18 @@ RT::Client::REST -- talk to RT installation using REST protocol.
 
 =head1 SYNOPSIS
 
+  use Error qw(:try);
+  use RT::Client::REST;
+
   my $rt = RT::Client::REST->new(
-    username => $user,
-    password => $pass,
     server => 'http://example.com/rt',
   );
+
+  try {
+    $rt->login(username => $user, password => $pass);
+  } catch Exception::Class with {
+    die "problem logging in: ", shift->message;
+  };
 
   try {
     # Get ticket #10
@@ -680,25 +723,15 @@ The constructor can take these options:
 
 B<server> is a URI pointing to your RT installation.
 
-=item *
-
-B<username> and B<password> are used to authenticate your request.  After
-an instance of B<RT::Client::REST> is used to issue a successful request,
-subsequent requests will use a cookie, so the first request is an effect
-a log in.
-
-=item *
-
-Alternatively, if you have already authenticated against RT in some other
-part of your program, you can use B<cookie> parameter to supply an object
+If you have already authenticated against RT in some other
+part of your program, you can use B<_cookie> parameter to supply an object
 of type B<HTTP::Cookies> to use for credentials information.
 
-=item *
-
-All of the above, B<server>, B<username>, B<password>, and B<cookie> can also
-be used as regular methods after your object is instantiated.
-
 =back
+
+=item login (username => 'root', password => 'password')
+
+Log in to RT.  Throws an exception on error.
 
 =item show (type => $type, id => $id)
 
@@ -967,7 +1000,7 @@ Most likely.  Please report.
 
 =head1 VERSION
 
-This is version 0.22 of B<RT::Client::REST>.
+This is version 0.23 of B<RT::Client::REST>.
 
 =head1 AUTHORS
 

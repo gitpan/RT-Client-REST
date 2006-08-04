@@ -1,4 +1,4 @@
-# $Id: Object.pm 100 2006-08-04 13:25:26Z dtikhonov $
+# $Id: Object.pm 108 2006-08-04 20:49:01Z dtikhonov $
 
 package RT::Client::REST::Object;
 
@@ -122,6 +122,12 @@ example:
 
 =back
 
+=head1 SPECIAL ATTRIBUTES
+
+B<id> and B<parent_id> are special attributes.  They are used by
+various DB-related methods and are especially relied upon by
+B<autostore>, B<autosync>, and B<autoget> features.
+
 =head1 METHODS
 
 =over 2
@@ -132,7 +138,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION);
-$VERSION = 0.04;
+$VERSION = 0.05;
 
 use Error qw(:try);
 use Params::Validate;
@@ -154,6 +160,24 @@ sub new {
 
     my $self = bless {}, ref($class) || $class;
     my %opts = @_;
+
+    my $id = delete($opts{id});
+    if (defined($id)) {{
+        $self->id($id);
+        if ($self->can('parent_id')) {
+            # If object can parent_id, we assume that it's needed for
+            # retrieval.
+            my $parent_id = delete($opts{parent_id});
+            if (defined($parent_id)) {
+                $self->parent_id($parent_id);
+            } else {
+                last;
+            }
+        }
+        if ($self->autoget) {
+            $self->retrieve;
+        }
+    }}
 
     while (my ($k, $v) = each(%opts)) {
         $self->$k($v);
@@ -206,6 +230,21 @@ sub _generate_methods {
                 }
                 $self->{'_' . $method} = shift;
                 $self->_mark_dirty($method);
+
+                # Let's try to autosync, shall we?  Logic is a bit hairy
+                # in order to make it efficient.
+                if ($self->autosync && $self->can('store') &&
+                    # OK, so id is special.  This is so that 'new' would
+                    # work.
+                    'id' ne $method &&
+                    'parent_id' ne $method &&
+
+                    # Plus we don't want to store right after retrieving
+                    # (that's where from_form is called from).
+                    (caller(1))[3] ne __PACKAGE__  . '::from_form')
+                {
+                    $self->store;
+                }
             }
 
             if ($settings->{list}) {
@@ -316,7 +355,7 @@ sub to_form {
         } elsif ($attributes->{$attr}{list}) {
             $value = join(',', $self->$attr);
         } else {
-            $value = $self->$attr;
+            $value = (defined($self->$attr) ? $self->$attr : 'Not set');
         }
 
         $hash{$rest_name} = $value;
@@ -494,12 +533,7 @@ sub search {
 
     return RT::Client::REST::SearchResult->new(
         ids => \@results,
-        retrieve => sub {
-            return $self->new(
-                id => shift,
-                rt => $rt,
-            )->retrieve,
-        },
+        object => sub { $self->new(id => shift, rt => $rt) },
     );
 }
 
@@ -614,7 +648,6 @@ sub rt {
         my $rt = shift;
         unless (UNIVERSAL::isa($rt, 'RT::Client::REST')) {
             RT::Client::REST::Object::InvalidValueException->throw;
-
         }
         $self->{__rt} = $rt;
     }
@@ -675,7 +708,136 @@ Store the object.  If 'id' is set, this is an update; otherwise, a new
 object is created and the 'id' attribute is set.  Note that only changed
 (dirty) attributes are sent to the server.
 
+=back
+
+=head1 CLASS METHODS
+
+=over 2
+
+=item use_single_rt
+
+This method takes a single argument -- L<RT::Client::REST> object
+and makes this class use it for all instantiations.  For example:
+
+  my $rt = RT::Client::REST->new(%args);
+
+  # Make all tickets use this RT:
+  RT::Client::REST::Ticket->use_single_rt($rt);
+
+  # Now make all objects use it:
+  RT::Client::REST::Object->use_single_rt($rt);
+
 =cut
+
+sub use_single_rt {
+    my ($class, $rt) = @_;
+
+    unless (UNIVERSAL::isa($rt, 'RT::Client::REST')) {
+        RT::Client::REST::Object::InvalidValueException->throw;
+    }
+
+    no strict 'refs';
+    no warnings 'redefine';
+    *{(ref($class) || $class) . '::rt'} = sub { $rt };
+}
+
+=item use_autostore
+
+Turn autostoring on and off.  Autostoring means that you do not have
+to explicitly call C<store()> on an object - it will be called when
+the object goes out of scope.
+
+  # Autostore tickets:
+  RT::Client::REST::Ticket->use_autostore(1);
+  my $ticket = RT::Client::REST::Ticket->new(%opts)->retrieve;
+  $ticket->priority(10);
+  # Don't have to call store().
+
+=cut
+
+sub autostore {}
+
+sub use_autostore {
+    my ($class, $autostore) = @_;
+    
+    no strict 'refs';
+    no warnings 'redefine';
+    *{(ref($class) || $class) . '::autostore'} = sub { $autostore };
+}
+
+sub DESTROY {
+    my $self = shift;
+
+    $self->autostore && $self->can('store') && $self->store;
+}
+
+=item use_autoget
+
+Turn autoget feature on or off (off by default).  When set to on,
+C<retrieve()> will be automatically called from the constructor if
+it is called with that object's special attributes (see
+L</SPECIAL ATTRIBUTES> above).
+
+  RT::Client::Ticket->use_autoget(1);
+  my $ticket = RT::Client::Ticket->new(id => 1);
+  # Now all attributes are available:
+  my $subject = $ticket->subject;
+
+=cut
+
+sub autoget {}
+
+sub use_autoget {
+    my ($class, $autoget) = @_;
+    
+    no strict 'refs';
+    no warnings 'redefine';
+    *{(ref($class) || $class) . '::autoget'} = sub { $autoget };
+}
+
+=item use_autosync
+
+Turn autosync feature on or off (off by default).  When set, every time
+an attribute is changed, C<store()> method is invoked.  This may be pretty
+expensive.
+
+=cut
+
+sub autosync {}
+
+sub use_autosync {
+    my ($class, $autosync) = @_;
+
+    no strict 'refs';
+    no warnings 'redefine';
+    *{(ref($class) || $class) . '::autosync'} = sub { $autosync };
+}
+
+=item be_transparent
+
+This turns on B<autosync> and B<autoget>.  Transparency is a neat idea,
+but it may be expensive and slow.  Depending on your circumstances, you
+may want a finer control of your objects.  Transparency makes
+C<retrieve()> and C<store()> calls invisible:
+
+  RT::Client::REST::Ticket->be_transparent($rt);
+
+  my $ticket = RT::Client::REST::Ticket->new(id => $id); # retrieved
+  $ticket->add_cc('you@localhost.localdomain'); # stored
+  $ticket->status('stalled'); # stored
+  
+  # etc.
+
+Do not forget to pass RT::Client::REST object to this method.
+
+=cut
+
+sub be_transparent {
+    my ($class, $rt) = @_;
+    $class->use_autosync(1);
+    $class->use_autoget(1);
+    $class->use_single_rt($rt);
+}
 
 =back
 

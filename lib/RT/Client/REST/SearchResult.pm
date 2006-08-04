@@ -1,4 +1,4 @@
-# $Id: SearchResult.pm 73 2006-08-02 17:22:41Z dtikhonov $
+# $Id: SearchResult.pm 107 2006-08-04 20:47:40Z dtikhonov $
 #
 # RT::Client::REST::SearchResult -- search results object.
 
@@ -8,7 +8,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION);
-$VERSION = 0.02;
+$VERSION = 0.03;
 
 sub new {
     my $class = shift;
@@ -18,7 +18,7 @@ sub new {
     my $self = bless {}, ref($class) || $class;
 
     # FIXME: add validation.
-    $self->{_retrieve} = $opts{retrieve};
+    $self->{_object} = $opts{object};
     $self->{_ids} = $opts{ids} || [];
 
     return $self;
@@ -26,19 +26,29 @@ sub new {
 
 sub count { scalar(@{shift->{_ids}}) }
 
+sub _retrieve {
+    my ($self, $obj) = @_;
+
+    unless ($obj->autoget) {
+        $obj->retrieve;
+    }
+
+    return $obj;
+}
+
 sub get_iterator {
     my $self = shift;
     my @ids = @{$self->{_ids}};
-    my $retrieve = $self->{_retrieve};
+    my $object = $self->{_object};
 
     return sub {
         if (wantarray) {
             my @tomap = @ids;
             @ids = ();
 
-            return map { $retrieve->($_) } @tomap;
+            return map { $self->_retrieve($object->($_)) } @tomap;
         } elsif (@ids) {
-            return $retrieve->(shift(@ids));
+            return $self->_retrieve($object->(shift(@ids)));
         } else {
             return;     # This signifies the end of the iterations
         }
@@ -114,11 +124,11 @@ completeness, here are the arguments:
 
   my $search = RT::Client::REST::SearchResult->new(
     ids => [1 .. 10],
-    retrieve => sub {       # Yup, that's a closure.
+    object => sub {       # Yup, that's a closure.
       RT::Client::REST::Ticket->new(
         id => shift,
         rt => $rt,
-      )->retrieve;
+      );
     },
   );
 

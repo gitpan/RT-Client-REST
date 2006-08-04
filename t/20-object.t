@@ -22,12 +22,14 @@ package main;
 use strict;
 use warnings;
 
-use Test::More tests => 30;
+use Test::More tests => 38;
 use Test::Exception;
 
 use constant METHODS => (
     'new', 'to_form', 'from_form', '_generate_methods', 'store', 'retrieve',
-    'param', 'rt', 'cf', 'search', 'count',
+    'param', 'rt', 'cf', 'search', 'count', 'use_single_rt',
+    'use_autostore', 'use_autoget', 'use_autosync', 'be_transparent',
+    'autostore', 'autosync', 'autoget',
 );
 
 BEGIN {

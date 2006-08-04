@@ -1,4 +1,4 @@
-# $Id: Attachment.pm 71 2006-08-02 17:20:53Z dtikhonov $
+# $Id: Attachment.pm 109 2006-08-04 20:53:21Z dtikhonov $
 #
 # RT::Client::REST::Attachment -- attachment object representation.
 
@@ -8,7 +8,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION);
-$VERSION = 0.02;
+$VERSION = 0.03;
 
 use Params::Validate qw(:types);
 use RT::Client::REST::Object 0.01;
@@ -122,8 +122,9 @@ sub retrieve {
     return $self;
 }
 
+my @unsupported = qw(store search count);
 # Override unsupported methods.
-for my $method (qw(store search count)) {
+for my $method (@unsupported) {
     no strict 'refs';
     *$method = sub {
         my $self = shift;
@@ -131,6 +132,14 @@ for my $method (qw(store search count)) {
             ref($self) . " does not support '$method' method",
         );
     };
+}
+
+sub can {
+    my ($self, $method) = @_;
+    if (grep { $_ eq $method } @unsupported) {
+        return;
+    }
+    return $self->SUPER::can($method);
 }
 
 __PACKAGE__->_generate_methods;

@@ -37,7 +37,9 @@ t/22-ticket.t
 t/23-attachment.t
 t/24-transaction.t
 t/25-queue.t
+t/35-db.t
 t/40-search.t
 t/90-pod.t
+t/91-pod-coverage.t
 TODO
 META.yml                                 Module meta-data (added by MakeMaker)

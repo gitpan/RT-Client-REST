@@ -2,6 +2,7 @@ use strict;
 use warnings;
 
 package Mock;
+use base 'RT::Client::REST::Object';
 
 sub new {
     my $class = shift;
@@ -34,7 +35,7 @@ my @ids = (1 .. 9);
 lives_ok {
     $search = RT::Client::REST::SearchResult->new(
         ids => \@ids,
-        retrieve => sub { Mock->new(id => shift) },
+        object => sub { Mock->new(id => shift) },
     );
 };
 

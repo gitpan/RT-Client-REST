@@ -1,5 +1,37 @@
-# $Id: Changes 104 2006-08-04 13:29:09Z dtikhonov $
+# $Id: Changes 114 2006-08-04 20:57:32Z dtikhonov $
 Revision history for Perl module RT::Client::REST
+
+0.23    Fri Aug  4 2006 "Dmitri Tikhonov" <dtikhonov@vonage.com>
+  ! lib/RT/Client/REST.pm
+    * API change -- added 'login' method.
+
+  ! lib/RT/Client/REST/SearchResult.pm
+    * API change -- 'object' instead of 'retrieve'.
+
+  ! lib/RT/Client/REST/Object.pm
+    * Added support for transparency and a bunch of other goodies.
+      See POD.
+
+  ! lib/RT/Client/REST/Attachment.pm
+  ! lib/RT/Client/REST/Ticket.pm
+    * Modified to conform to changed APIs.
+
+  ! examples/*.pl
+    * Modified to adhere to new APIs.
+
+  + t/35-db.t
+    * Test auto* goodies.
+
+  + t/91-pod-coverage.t
+    * Test POD coverage.
+
+  ! t/10-core.t
+  ! t/20-object.t
+  ! t/40-search.t
+    * Updated with new tests, methods, APIs, etc.
+
+  ! MANIFEST
+    * Added new test files.
 
 0.22    Fri Aug  4 2006 "Dmitri Tikhonov" <dtikhonov@vonage.com>
   ! lib/RT/Client/REST/Object.pm

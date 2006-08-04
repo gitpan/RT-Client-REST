@@ -15,17 +15,19 @@ unless (@ARGV >= 3) {
 
 my $rt = RT::Client::REST->new(
     server  => ($ENV{RTSERVER} || 'http://rt.cpan.org'),
+);
+$rt->login(
     username=> shift(@ARGV),
     password=> shift(@ARGV),
 );
+RT::Client::REST::Object->be_transparent($rt);
 
 my $att;
 try {
     $att = RT::Client::REST::Attachment->new(
-        rt  => $rt,
-        parent_id  => shift(@ARGV),
         id  => shift(@ARGV),
-    )->retrieve;
+        parent_id  => shift(@ARGV),
+    );
 } catch Exception::Class::Base with {
     my $e = shift;
     die ref($e), ": ", $e->message || $e->description, "\n";

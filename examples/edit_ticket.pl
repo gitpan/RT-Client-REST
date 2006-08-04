@@ -14,16 +14,19 @@ unless (@ARGV >= 3) {
 
 my $rt = RT::Client::REST->new(
     server  => ($ENV{RTSERVER} || 'http://rt.cpan.org'),
+);
+$rt->login(
     username=> shift(@ARGV),
     password=> shift(@ARGV),
 );
 
+RT::Client::REST::Ticket->be_transparent($rt);
+
 my ($id, $attr, @vals) = @ARGV;
 my $ticket = RT::Client::REST::Ticket->new(
-    rt  => $rt,
     id  => $id,
     $attr, 1 == @vals ? @vals : \@vals,
-)->store;
+);
 
 use Data::Dumper;
 print Dumper($ticket);

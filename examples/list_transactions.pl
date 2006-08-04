@@ -16,15 +16,20 @@ unless (@ARGV >= 3) {
 
 my $rt = RT::Client::REST->new(
     server  => ($ENV{RTSERVER} || 'http://rt.cpan.org'),
+);
+
+$rt->login(
     username=> shift(@ARGV),
     password=> shift(@ARGV),
 );
 
-my $ticket = RT::Client::REST::Ticket->new(rt => $rt, id => shift(@ARGV));
+RT::Client::REST::Object->be_transparent($rt);
+
+my $ticket = RT::Client::REST::Ticket->new(id => shift(@ARGV));
 
 my $results;
 try {
-    $results = $ticket->transactions(type => 'Comment');
+    $results = $ticket->transactions;#(type => 'Comment');
 } catch Exception::Class::Base with {
     my $e = shift;
     die ref($e), ": ", $e->message;

@@ -15,6 +15,8 @@ unless (@ARGV >= 2) {
 
 my $rt = RT::Client::REST->new(
     server  => ($ENV{RTSERVER} || 'http://rt.cpan.org'),
+);
+$rt->login(
     username=> shift(@ARGV),
     password=> shift(@ARGV),
 );
