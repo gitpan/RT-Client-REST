@@ -9,7 +9,7 @@ use RT::Client::REST;
 use RT::Client::REST::Ticket;
 
 unless (@ARGV >= 3) {
-    die "Usage: $0 username password ticket_id [key-value pairs]\n";
+    die "Usage: $0 username password ticket_id attribute value1, value2..\n";
 }
 
 my $rt = RT::Client::REST->new(
@@ -18,10 +18,11 @@ my $rt = RT::Client::REST->new(
     password=> shift(@ARGV),
 );
 
+my ($id, $attr, @vals) = @ARGV;
 my $ticket = RT::Client::REST::Ticket->new(
     rt  => $rt,
-    id  => shift(@ARGV),
-    @ARGV,
+    id  => $id,
+    $attr, 1 == @vals ? @vals : \@vals,
 )->store;
 
 use Data::Dumper;

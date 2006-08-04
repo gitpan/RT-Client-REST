@@ -1,4 +1,4 @@
-# $Id: Object.pm 77 2006-08-02 17:31:16Z dtikhonov $
+# $Id: Object.pm 100 2006-08-04 13:25:26Z dtikhonov $
 
 package RT::Client::REST::Object;
 
@@ -31,6 +31,97 @@ The RT::Client::REST::Object module is a superclass providing a whole
 bunch of class and object methods in order to streamline the development
 of RT's REST client interface.
 
+=head1 ATTRIBUTES
+
+Attributes are defined by method C<_attributes> that should be defined
+in your class.  This method returns a reference to a hash whose keys are
+the attributes.  The values of the hash are attribute settings, which are
+as follows:
+
+=over 2
+
+=item list
+
+If set to true, this is a list attribute.  See
+L</LIST ATTRIBUTE PROPERTIES> below.
+
+=item validation
+
+A hash reference.  This is passed to validation routines when associated
+mutator is called.  See L<Params::Validate> for reference.
+
+=item rest_name
+
+This specifies this attribute's REST name.  For example, attribute
+"final_priority" corresponds to RT REST's "FinalPriority".  This option
+may be omitted if the two only differ in first letter capitalization.
+
+=item form2value
+
+Convert form value (one that comes from the server) into attribute-digestible
+format.
+
+=item value2form
+
+Convert value into REST form format.
+
+=back
+
+Example:
+
+  sub _attributes {{
+    id  => {
+        validation  => {
+            type    => SCALAR,
+            regex   => qr/^\d+$/,
+        },
+        form2value  => sub {
+            shift =~ m~^ticket/(\d+)$~i;
+            return $1;
+        },
+        value2form  => sub {
+            return 'ticket/' . shift;
+        },
+    },
+    admin_cc        => {
+        validation  => {
+            type    => ARRAYREF,
+        },
+        list        => 1,
+        rest_name   => 'AdminCc',
+    },
+  }}
+
+=head1 LIST ATTRIBUTE PROPERTIES
+
+List attributes have the following properties:
+
+=over 2
+
+=item *
+
+When called as accessors, return a list of items
+
+=item *
+
+When called as mutators, only accept a hash reference
+
+=item *
+
+Convenience methods "add_attr" and "delete_attr" are available.  For
+example:
+
+  # Get the list
+  my @requestors = $ticket->requestors;
+
+  # Replace with a new list
+  $ticket->requestors( [qw(dude@localhost)] );
+
+  # Add some random guys to the current list
+  $ticket->add_requestors('randomguy@localhost', 'evil@local');
+
+=back
+
 =head1 METHODS
 
 =over 2
@@ -41,7 +132,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION);
-$VERSION = 0.03;
+$VERSION = 0.04;
 
 use Error qw(:try);
 use Params::Validate;
@@ -87,10 +178,6 @@ methods 'creator', 'cc', 'add_cc', and 'delete_cc':
     validation => { type => ARRAYREF },
   },
 
-Note that accessors/mutators working with 'list' attributes accept
-and return array references, whereas convenience methods 'add_*' and
-'delete_*' accept lists of items.
-
 =cut
 
 sub _generate_methods {
@@ -121,7 +208,12 @@ sub _generate_methods {
                 $self->_mark_dirty($method);
             }
 
-            return $self->{'_' . $method};
+            if ($settings->{list}) {
+                my $retval = $self->{'_' . $method} || [];
+                return @$retval;
+            } else {
+                return $self->{'_' . $method};
+            }
         };
 
         if ($settings->{list}) {
@@ -137,8 +229,8 @@ sub _generate_methods {
                         ->throw;
                 }
 
-                my $values = $self->$method || [];
-                my %values = map { $_, 1 } @$values;
+                my @values = $self->$method;
+                my %values = map { $_, 1 } @values;
 
                 # Now add new values
                 for (@_) {
@@ -156,8 +248,8 @@ sub _generate_methods {
                         ->throw;
                 }
 
-                my $values = $self->$method || [];
-                my %values = map { $_, 1 } @$values;
+                my @values = $self->$method;
+                my %values = map { $_, 1 } @values;
 
                 # Now delete values
                 for (@_) {
@@ -217,12 +309,16 @@ sub to_form {
     for my $attr (@attrs) {
         my $rest_name = (exists($attributes->{$attr}{rest_name}) ?
                          $attributes->{$attr}{rest_name} : ucfirst($attr));
-        my $value = $self->$attr;
+
+        my $value;
         if (exists($attributes->{$attr}{value2form})) {
-            $value = $attributes->{$attr}{value2form}($value);
+            $value = $attributes->{$attr}{value2form}($self->$attr);
         } elsif ($attributes->{$attr}{list}) {
-            $value = join(',', @$value);
+            $value = join(',', $self->$attr);
+        } else {
+            $value = $self->$attr;
         }
+
         $hash{$rest_name} = $value;
     }
 
@@ -270,7 +366,7 @@ sub from_form {
     while (my ($key, $value) = each(%$hash)) {
         if ($key =~ s/^cf-//) { # Handle custom fields.
             if ($value =~ /,/) {    # OK, this is questionable.
-                $value = [ split(/,/, $value) ];
+                $value = [ split(/\s*,\s*/, $value) ];
             }
 
             $self->cf($key, $value);
@@ -290,7 +386,7 @@ sub from_form {
         if (exists($attributes->{$method}{form2value})) {
             $value = $attributes->{$method}{form2value}($value);
         } elsif ($attributes->{$method}{list}) {
-            $value = [split(/,/, $value)],
+            $value = [split(/\s*,\s*/, $value)],
         }
         $self->$method($value);
     }

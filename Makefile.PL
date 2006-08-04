@@ -10,5 +10,6 @@ WriteMakefile(
                         'HTTP::Request::Common' => 0,
                         'LWP'                   => 0,
                         'Params::Validate'      => 0,
+                        'Test::Exception'       => 0,
     },
 );

@@ -1,4 +1,4 @@
-# $Id: REST.pm 95 2006-08-03 13:42:43Z dtikhonov $
+# $Id: REST.pm 102 2006-08-04 13:27:22Z dtikhonov $
 # RT::Client::REST
 #
 # Dmitri Tikhonov <dtikhonov@vonage.com>
@@ -23,7 +23,7 @@ use strict;
 use warnings;
 
 use vars qw/$VERSION/;
-$VERSION = '0.21';
+$VERSION = '0.22';
 
 use LWP;
 use HTTP::Cookies;
@@ -663,7 +663,7 @@ of this whole REST business.
 
 This API mimics that of 'rt'.  For a more OO-style APIs, please use
 L<RT::Client::REST::Object>-derived classes:
-L<RT::Client::REST::Ticket> and L<RT::Client::REST::User> (the latter is
+L<RT::Client::REST::Ticket> and L<RT::Client::REST::User>.
 not implemented yet).
 
 =head1 METHODS
@@ -967,7 +967,7 @@ Most likely.  Please report.
 
 =head1 VERSION
 
-This is version 0.21 of B<RT::Client::REST>.
+This is version 0.22 of B<RT::Client::REST>.
 
 =head1 AUTHORS
 

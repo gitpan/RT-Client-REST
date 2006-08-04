@@ -1,5 +1,24 @@
-# $Id: Changes 94 2006-08-02 21:34:06Z dtikhonov $
+# $Id: Changes 104 2006-08-04 13:29:09Z dtikhonov $
 Revision history for Perl module RT::Client::REST
+
+0.22    Fri Aug  4 2006 "Dmitri Tikhonov" <dtikhonov@vonage.com>
+  ! lib/RT/Client/REST/Object.pm
+    * Modified behavior.  Now list attribute methods return lists,
+      not array references.
+    * Fixed the way comma-separated values are split when parsing forms.
+    * Updated POD.
+
+  ! Makefile.PL
+    * Added dependency on Test::Exception, so that automated CPAN tests
+      don't fail.
+
+  ! lib/RT/Client/REST.pm
+    * Updated POD.
+    * Upped VERSION.
+    * No code changes.
+
+  ! examples/edit_ticket.pl
+    * Modified to support setting list attributes.
 
 0.21    Thu Aug  3 2006 "Dmitri Tikhonov" <dtikhonov@vonage.com>
   ! lib/RT/Client/REST.pm
