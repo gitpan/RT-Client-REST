@@ -1,4 +1,4 @@
-# $Id: Ticket.pm 109 2006-08-04 20:53:21Z dtikhonov $
+# $Id: Ticket.pm,v 1.1.1.7 2006/08/07 16:04:32 dtikhonov Exp $
 #
 # RT::Client::REST::Ticket -- ticket object representation.
 

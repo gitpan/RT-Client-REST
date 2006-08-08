@@ -1,4 +1,4 @@
-# $Id: REST.pm 106 2006-08-04 20:46:52Z dtikhonov $
+# $Id: REST.pm,v 1.2 2006/08/08 18:19:15 dtikhonov Exp $
 # RT::Client::REST
 #
 # Dmitri Tikhonov <dtikhonov@vonage.com>
@@ -23,17 +23,17 @@ use strict;
 use warnings;
 
 use vars qw/$VERSION/;
-$VERSION = '0.23';
+$VERSION = '0.24';
 
 use Error qw(:try);
 use LWP;
 use HTTP::Cookies;
 use HTTP::Request::Common;
-use RT::Client::REST::Exception 0.17;
+use RT::Client::REST::Exception 0.18;
 use RT::Client::REST::Forms;
 
 # Generate accessors/mutators
-for my $method (qw(server _cookie)) {
+for my $method (qw(server _cookie timeout)) {
     no strict 'refs';
     *{__PACKAGE__ . '::' . $method} = sub {
         my $self = shift;
@@ -80,6 +80,8 @@ sub login {
     } catch RT::Client::REST::AuthenticationFailureException with {
         shift->rethrow;
     } catch RT::Client::REST::MalformedRTResponseException with {
+        shift->rethrow;
+    } catch RT::Client::REST::RequestTimedOutException with {
         shift->rethrow;
     } catch Exception::Class::Base with {
         # ignore others.
@@ -417,6 +419,9 @@ sub _submit {
         agent => $self->_ua_string,
         env_proxy => 1,
     );
+    if ($self->timeout) {
+        $ua->timeout($self->timeout);
+    }
 
     # Did the caller specify any data to send with the request?
     $data = [];
@@ -524,8 +529,11 @@ sub _submit {
                 );
             }
         }
-    }
-    else {
+    } elsif (500 == $res->code && $res->content =~ /read timeout/) {
+        RT::Client::REST::RequestTimedOutException->throw(
+            "Your request to " . $self->server . " timed out",
+        );
+    } else {
         RT::Client::REST::HTTPException->throw(
             code    => $res->code,
             message => $res->message,
@@ -675,6 +683,7 @@ RT::Client::REST -- talk to RT installation using REST protocol.
 
   my $rt = RT::Client::REST->new(
     server => 'http://example.com/rt',
+    timeout => 30,
   );
 
   try {
@@ -719,13 +728,19 @@ The constructor can take these options:
 
 =over 2
 
-=item *
+=item B<server>
 
 B<server> is a URI pointing to your RT installation.
 
 If you have already authenticated against RT in some other
 part of your program, you can use B<_cookie> parameter to supply an object
 of type B<HTTP::Cookies> to use for credentials information.
+
+=item B<timeout>
+
+B<timeout> is the number of seconds HTTP client will wait for the
+server to respond.  Defaults to LWP::UserAgent's default timeout, which
+is 300 seconds.
 
 =back
 
@@ -992,6 +1007,7 @@ HTTP::Request::Common
 
 =head1 SEE ALSO
 
+L<LWP::UserAgent>,
 L<RT::Client::REST::Exception>
 
 =head1 BUGS
@@ -1000,7 +1016,7 @@ Most likely.  Please report.
 
 =head1 VERSION
 
-This is version 0.23 of B<RT::Client::REST>.
+This is version 0.24 of B<RT::Client::REST>.
 
 =head1 AUTHORS
 

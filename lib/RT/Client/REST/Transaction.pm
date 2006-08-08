@@ -1,4 +1,4 @@
-# $Id: Transaction.pm 74 2006-08-02 17:23:08Z dtikhonov $
+# $Id: Transaction.pm,v 1.1.1.2 2006/08/07 16:04:27 dtikhonov Exp $
 #
 # RT::Client::REST::Transaction -- transaction object representation.
 

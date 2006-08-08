@@ -1,4 +1,4 @@
-# $Id: Exception.pm 96 2006-08-03 13:43:34Z dtikhonov $
+# $Id: Exception.pm,v 1.2 2006/08/08 18:19:43 dtikhonov Exp $
 #
 # We are going to throw exceptions, because we're cool like that.
 package RT::Client::REST::Exception;
@@ -7,7 +7,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION);
-$VERSION = 0.17;
+$VERSION = 0.18;
 
 use Error;
 
@@ -115,6 +115,11 @@ use Exception::Class (
         isa         => 'RT::Client::REST::RTException',
         description => 'The owner you are trying to assign to a ticket ' .
             'is already the owner',
+    },
+
+    'RT::Client::REST::RequestTimedOutException' => {
+        isa         => 'RT::Client::REST::RTException',
+        description => 'Request timed out',
     },
 
     'RT::Client::REST::UnknownRTException' => {
@@ -298,6 +303,10 @@ You are not authorized to perform this action.
 The owner you are trying to assign to a ticket is already the owner.
 This exception is usually thrown by methods C<take()>, C<untake>, and
 C<steal>, if the operation is a noop.
+
+=item B<RT::Client::REST::RequestTimedOutException>
+
+Request timed out.
 
 =item B<RT::Client::REST::UnknownRTException>
 

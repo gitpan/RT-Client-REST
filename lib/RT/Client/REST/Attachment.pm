@@ -1,4 +1,4 @@
-# $Id: Attachment.pm 109 2006-08-04 20:53:21Z dtikhonov $
+# $Id: Attachment.pm,v 1.1.1.4 2006/08/07 16:04:32 dtikhonov Exp $
 #
 # RT::Client::REST::Attachment -- attachment object representation.
 

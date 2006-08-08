@@ -1,5 +1,28 @@
-# $Id: Changes 114 2006-08-04 20:57:32Z dtikhonov $
+# $Id: Changes,v 1.2 2006/08/08 18:20:20 dtikhonov Exp $
 Revision history for Perl module RT::Client::REST
+
+0.24    Tue Aug  8 2006 "Dmitri Tikhonov" <dtikhonov@vonage.com>
+  ! lib/RT/Client/REST.pm
+    * Added 'timeout' attribute to the object.  If specified, overrides
+      the default used by LWP::UserAgent.
+
+  ! lib/RT/Client/REST/Exception.pm
+    * Added RT::Client::REST::RequestTimedOutException.
+
+  ! 91-pod-coverage.t
+    * RT::Client::REST now has improved POD.
+
+  ! MANIFEST
+    * Added new files.
+
+  ! TODO
+    * Added 'write user manual' item.
+
+  + t/80-timeout.t
+    * Test timeout exceptions.
+
+  + README
+    * Added README file.
 
 0.23    Fri Aug  4 2006 "Dmitri Tikhonov" <dtikhonov@vonage.com>
   ! lib/RT/Client/REST.pm
