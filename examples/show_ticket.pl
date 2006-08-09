@@ -30,8 +30,6 @@ try {
     $ticket = RT::Client::REST::Ticket->new(
         id  => shift(@ARGV),
     );
-    $ticket->priority(20);
-    $ticket->add_admin_cc('dtikhonov@localhost');
 } catch Exception::Class::Base with {
     my $e = shift;
     die ref($e), ": ", $e->message || $e->description, "\n";

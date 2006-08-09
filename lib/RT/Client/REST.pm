@@ -1,4 +1,4 @@
-# $Id: REST.pm,v 1.2 2006/08/08 18:19:15 dtikhonov Exp $
+# $Id: REST.pm,v 1.3 2006/08/09 14:50:54 dtikhonov Exp $
 # RT::Client::REST
 #
 # Dmitri Tikhonov <dtikhonov@vonage.com>
@@ -23,14 +23,14 @@ use strict;
 use warnings;
 
 use vars qw/$VERSION/;
-$VERSION = '0.24';
+$VERSION = '0.25';
 
 use Error qw(:try);
-use LWP;
 use HTTP::Cookies;
 use HTTP::Request::Common;
 use RT::Client::REST::Exception 0.18;
 use RT::Client::REST::Forms;
+use RT::Client::REST::HTTPClient;
 
 # Generate accessors/mutators
 for my $method (qw(server _cookie timeout)) {
@@ -82,6 +82,8 @@ sub login {
     } catch RT::Client::REST::MalformedRTResponseException with {
         shift->rethrow;
     } catch RT::Client::REST::RequestTimedOutException with {
+        shift->rethrow;
+    } catch RT::Client::REST::HTTPException with {
         shift->rethrow;
     } catch Exception::Class::Base with {
         # ignore others.
@@ -415,13 +417,6 @@ sub steal { shift->_ticket_action(@_, action => 'steal') }
 sub _submit {
     my ($self, $uri, $content, $auth) = @_;
     my ($req, $data);
-    my $ua = new LWP::UserAgent(
-        agent => $self->_ua_string,
-        env_proxy => 1,
-    );
-    if ($self->timeout) {
-        $ua->timeout($self->timeout);
-    }
 
     # Did the caller specify any data to send with the request?
     $data = [];
@@ -447,7 +442,7 @@ sub _submit {
     }
 
     # Should we send authentication information to start a new session?
-    unless ($self->_cookie) {
+    unless ($self->_cookie || $self->basic_auth_cb) {
         unless (defined($auth)) {
             RT::Client::REST::RequiredAttributeUnsetException->throw(
                 "You must log in first",
@@ -470,7 +465,7 @@ sub _submit {
 
     # Then we send the request and parse the response.
     #DEBUG(3, $req->as_string);
-    my $res = $ua->request($req);
+    my $res = $self->_ua->request($req);
     #DEBUG(3, $res->as_string);
 
     if ($res->is_success) {
@@ -541,6 +536,41 @@ sub _submit {
     }
 
     return $res;
+}
+
+sub _ua {
+    my $self = shift;
+
+    unless (exists($self->{_ua})) {
+        $self->{_ua} = RT::Client::REST::HTTPClient->new(
+            agent => $self->_ua_string,
+            env_proxy => 1,
+        );
+        if ($self->timeout) {
+            $self->{_ua}->timeout($self->timeout);
+        }
+        if ($self->basic_auth_cb) {
+            $self->{_ua}->basic_auth_cb($self->basic_auth_cb);
+        }
+    }
+
+    return $self->{_ua};
+}
+
+sub basic_auth_cb {
+    my $self = shift;
+
+    if (@_) {
+        my $sub = shift;
+        unless ('CODE' eq ref($sub)) {
+            RT::Client::REST::InvalidParameterValueException->throw(
+                "'basic_auth_cb' must be a code reference",
+            );
+        }
+        $self->{_basic_auth_cb} = $sub;
+    }
+
+    return $self->{_basic_auth_cb};
 }
 
 # Not a constant so that it can be overridden.
@@ -724,7 +754,8 @@ not implemented yet).
 
 =item new ()
 
-The constructor can take these options:
+The constructor can take these options (note that these can also
+be called as their own methods):
 
 =over 2
 
@@ -742,11 +773,28 @@ B<timeout> is the number of seconds HTTP client will wait for the
 server to respond.  Defaults to LWP::UserAgent's default timeout, which
 is 300 seconds.
 
+=item B<basic_auth_cb>
+
+This callback is to provide the HTTP client (based on L<LWP::UserAgent>)
+with username and password for basic authentication.  It takes the
+same arguments as C<get_basic_credentials()> of LWP::UserAgent and
+returns username and password:
+
+  $rt->basic_auth_cb( sub {
+    my ($realm, $uri, $proxy) = @_;
+    # do some evil things
+    return ($username, $password);
+  }
+
 =back
 
 =item login (username => 'root', password => 'password')
 
 Log in to RT.  Throws an exception on error.
+
+Usually, if the other side uses basic HTTP authentication, you do not
+have to log in, but rather prodive HTTP username and password instead.
+See B<basic_auth_cb> above.
 
 =item show (type => $type, id => $id)
 
@@ -1016,7 +1064,7 @@ Most likely.  Please report.
 
 =head1 VERSION
 
-This is version 0.24 of B<RT::Client::REST>.
+This is version 0.25 of B<RT::Client::REST>.
 
 =head1 AUTHORS
 

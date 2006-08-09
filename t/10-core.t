@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 21;
+use Test::More tests => 26;
 use Test::Exception;
 
 use constant METHODS => (
@@ -9,6 +9,7 @@ use constant METHODS => (
     'create', 'comment', 'correspond', 'merge_tickets', 'link_tickets',
     'unlink_tickets', 'search', 'get_attachment_ids', 'get_attachment',
     'get_transaction_ids', 'get_transaction', 'take', 'untake', 'steal',
+    'timeout', 'basic_auth_cb',
 );
 
 use RT::Client::REST;
@@ -27,5 +28,17 @@ throws_ok {
     $rt->login;
 } 'RT::Client::REST::InvalidParameterValueException',
     "requires 'username' and 'password' parameters";
+
+throws_ok {
+    $rt->basic_auth_cb(1);
+} 'RT::Client::REST::InvalidParameterValueException';
+
+throws_ok {
+    $rt->basic_auth_cb({});
+} 'RT::Client::REST::InvalidParameterValueException';
+
+lives_ok {
+    $rt->basic_auth_cb(sub {});
+};
 
 # vim:ft=perl:
