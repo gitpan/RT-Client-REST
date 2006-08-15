@@ -28,5 +28,5 @@ License:
     Original 'rt' utility is GPL, therefore so is RT::Client::REST.
     The rest of the modules are licensed under the usual artistic
     license.  (I am not sure it makes sense to do this.  Does GPL
-    override this?  Someone let me know if you have a definite
-    answer to this.)
+    override artistic license?  Someone let me know if you have a
+    definite answer.)

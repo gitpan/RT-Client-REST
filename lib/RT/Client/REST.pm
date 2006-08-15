@@ -1,4 +1,4 @@
-# $Id: REST.pm,v 1.3 2006/08/09 14:50:54 dtikhonov Exp $
+# $Id: REST.pm,v 1.4 2006/08/15 13:23:01 dtikhonov Exp $
 # RT::Client::REST
 #
 # Dmitri Tikhonov <dtikhonov@vonage.com>
@@ -23,7 +23,7 @@ use strict;
 use warnings;
 
 use vars qw/$VERSION/;
-$VERSION = '0.25';
+$VERSION = '0.26';
 
 use Error qw(:try);
 use HTTP::Cookies;
@@ -524,7 +524,12 @@ sub _submit {
                 );
             }
         }
-    } elsif (500 == $res->code && $res->content =~ /read timeout/) {
+    } elsif (
+        500 == $res->code &&
+        # Older versions of HTTP::Response populate 'message', newer
+        # versions populate 'content'.  This catches both cases.
+        ($res->content || $res->message) =~ /read timeout/
+    ) {
         RT::Client::REST::RequestTimedOutException->throw(
             "Your request to " . $self->server . " timed out",
         );
