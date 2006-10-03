@@ -1,5 +1,24 @@
-# $Id: Changes,v 1.5 2006/08/15 13:30:12 dtikhonov Exp $
+# $Id: Changes,v 1.6 2006/10/03 16:25:35 dtikhonov Exp $
 Revision history for Perl module RT::Client::REST
+
+0.27    Tue Oct  3 2006 "Dmitri Tikhonov" <dtikhonov@vonage.com>
+  This is a small release to fix warnings and a couple of documentation
+  errors.
+
+  ! lib/RT/Client/REST.pm
+    * Fixed SYNOPSIS (CPAN RT 21314).
+    * Upped $VERSION to 0.27.
+
+  ! lib/RT/Client/REST/Object.pm
+    * Fixed code to avoid a possible 'undefined value' warnings from
+      tests.
+    * Fixed up POD (annocpan note #989).
+
+  ! t/35-db.t
+    * Changed from 'no_plan' to plan 20 tests.
+
+  ! t/22-ticket.t
+    * Added test to verify properties of list attributes.
 
 0.26    Tue Aug 15 2006 "Dmitri Tikhonov" <dtikhonov@vonage.com>
   ! lib/RT/Client/REST.pm

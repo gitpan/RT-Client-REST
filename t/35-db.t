@@ -37,7 +37,7 @@ use warnings;
 
 use vars qw($STORED);
 
-use Test::More 'no_plan';#tests => 5;
+use Test::More tests => 20;
 use Test::Exception;
 
 my $obj = MyObject->new(id => 1);

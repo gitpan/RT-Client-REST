@@ -1,4 +1,4 @@
-# $Id: REST.pm,v 1.4 2006/08/15 13:23:01 dtikhonov Exp $
+# $Id: REST.pm,v 1.5 2006/10/03 16:09:39 dtikhonov Exp $
 # RT::Client::REST
 #
 # Dmitri Tikhonov <dtikhonov@vonage.com>
@@ -23,7 +23,7 @@ use strict;
 use warnings;
 
 use vars qw/$VERSION/;
-$VERSION = '0.26';
+$VERSION = '0.27';
 
 use Error qw(:try);
 use HTTP::Cookies;
@@ -723,7 +723,7 @@ RT::Client::REST -- talk to RT installation using REST protocol.
 
   try {
     $rt->login(username => $user, password => $pass);
-  } catch Exception::Class with {
+  } catch Exception::Class::Base with {
     die "problem logging in: ", shift->message;
   };
 

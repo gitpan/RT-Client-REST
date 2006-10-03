@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 88;
+use Test::More tests => 95;
 use Test::Exception;
 
 use constant METHODS => (
@@ -148,6 +148,31 @@ for my $method (qw(take untake steal)) {
         $ticket->$method;
     } 'RT::Client::REST::RequiredAttributeUnsetException';
 }
+
+# Test list attributes:
+my @emails = qw(dmitri@localhost dude@localhost);
+throws_ok {
+    $ticket->requestors(@emails);
+} 'RT::Client::REST::Object::InvalidValueException',
+    'List attributes (requestors) only accept array reference';
+
+lives_ok {
+    $ticket->requestors(\@emails);
+} 'Set requestors to list of two values';
+
+ok(2 == $ticket->requestors, 'There are 2 requestors');
+
+lives_ok {
+    $ticket->add_requestors(qw(xyz@localhost root pgsql));
+} 'Added three more requestors';
+
+ok(5 == $ticket->requestors, 'There are now 5 requestors');
+
+lives_ok {
+    $ticket->delete_requestors('root');
+} 'Deleted a requestor (root)';
+
+ok(4 == $ticket->requestors, 'There are now 4 requestors');
 
 ok('ticket' eq $ticket->rt_type);
 

@@ -1,4 +1,4 @@
-# $Id: Object.pm,v 1.1.1.5 2006/08/07 16:04:32 dtikhonov Exp $
+# $Id: Object.pm,v 1.3 2006/10/03 16:19:18 dtikhonov Exp $
 
 package RT::Client::REST::Object;
 
@@ -104,7 +104,7 @@ When called as accessors, return a list of items
 
 =item *
 
-When called as mutators, only accept a hash reference
+When called as mutators, only accept an array reference
 
 =item *
 
@@ -138,7 +138,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION);
-$VERSION = 0.05;
+$VERSION = 0.06;
 
 use Error qw(:try);
 use Params::Validate;
@@ -231,6 +231,8 @@ sub _generate_methods {
                 $self->{'_' . $method} = shift;
                 $self->_mark_dirty($method);
 
+                my $caller = defined((caller(1))[3]) ? (caller(1))[3] : '';
+
                 # Let's try to autosync, shall we?  Logic is a bit hairy
                 # in order to make it efficient.
                 if ($self->autosync && $self->can('store') &&
@@ -241,7 +243,7 @@ sub _generate_methods {
 
                     # Plus we don't want to store right after retrieving
                     # (that's where from_form is called from).
-                    (caller(1))[3] ne __PACKAGE__  . '::from_form')
+                    $caller ne __PACKAGE__  . '::from_form')
                 {
                     $self->store;
                 }
