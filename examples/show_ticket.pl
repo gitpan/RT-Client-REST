@@ -37,3 +37,7 @@ try {
 
 use Data::Dumper;
 print Dumper($ticket);
+
+for my $cf (sort $ticket->cf) {
+    print "Custom field '$cf'=", $ticket->cf($cf), "\n";
+}

@@ -1,5 +1,26 @@
-# $Id: Changes,v 1.6 2006/10/03 16:25:35 dtikhonov Exp $
+# $Id: Changes,v 1.5 2007/04/27 23:44:48 dtikhonov Exp $
 Revision history for Perl module RT::Client::REST
+
+0.28    Fri Apr 27 2007 "Dmitri Tikhonov" <dtikhonov@yahoo.com>
+  This is a bug fix release.
+
+  ! lib/RT/Client/REST/Ticket.pm
+    * CPAN.RT #25185 -- fixed typos in attribute validation specs.
+
+  ! lib/RT/Client/REST.pm
+    * CPAN.RT #26528 -- fixed a typo in method 'get_transaction_ids'
+
+  ! examples/show_ticket.pl
+    * Added code to display all custom fields.
+
+  + t/99-kwalitee.t
+    * Kwalitee is spelled... vanity?!
+
+  ! TODO
+    * Removed a couple of old items.
+
+  Special thanks to Damien Krotkine (Dams) who found and provided
+  patches for both bugs.
 
 0.27    Tue Oct  3 2006 "Dmitri Tikhonov" <dtikhonov@vonage.com>
   This is a small release to fix warnings and a couple of documentation

@@ -1,4 +1,4 @@
-# $Id: HTTPClient.pm,v 1.1 2006/08/09 14:47:12 dtikhonov Exp $
+# $Id: HTTPClient.pm,v 1.1.1.1 2007/04/27 23:01:10 dtikhonov Exp $
 #
 # Subclass LWP::UserAgent in order to support basic authentication.
 

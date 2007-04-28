@@ -10,11 +10,3 @@ implemented.
   on 7/25/2006.
 
 - Write user manual.
-
-- Add support for 'comment' and 'correspond' for RT 3.4.5:
-  http://rt.cpan.org/Ticket/Display.html?id=20880
-
-------- These are done: ----------
-
-Implemented in 0.13:
-- Add search capabilities.

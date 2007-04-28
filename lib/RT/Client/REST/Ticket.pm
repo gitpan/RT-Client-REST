@@ -1,4 +1,4 @@
-# $Id: Ticket.pm,v 1.1.1.7 2006/08/07 16:04:32 dtikhonov Exp $
+# $Id: Ticket.pm,v 1.2 2007/04/27 23:13:56 dtikhonov Exp $
 #
 # RT::Client::REST::Ticket -- ticket object representation.
 
@@ -173,28 +173,28 @@ sub _attributes {{
     },
 
     time_estimated  => {
-        validateion => {
+        validation  => {
             type    => SCALAR,
         },
         rest_name   => 'TimeEstimated',
     },
 
     time_worked     => {
-        validateion => {
+        validation  => {
             type    => SCALAR,
         },
         rest_name   => 'TimeWorked',
     },
 
     time_left       => {
-        validateion => {
+        validation  => {
             type    => SCALAR,
         },
         rest_name   => 'TimeLeft',
     },
 
     last_updated    => {
-        validateion => {
+        validation  => {
             type    => SCALAR,
         },
         rest_name   => 'LastUpdated',

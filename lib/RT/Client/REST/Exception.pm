@@ -1,4 +1,4 @@
-# $Id: Exception.pm,v 1.2 2006/08/08 18:19:43 dtikhonov Exp $
+# $Id: Exception.pm,v 1.1.1.1 2007/04/27 23:01:10 dtikhonov Exp $
 #
 # We are going to throw exceptions, because we're cool like that.
 package RT::Client::REST::Exception;

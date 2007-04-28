@@ -1,4 +1,4 @@
-# $Id: Object.pm,v 1.3 2006/10/03 16:19:18 dtikhonov Exp $
+# $Id: Object.pm,v 1.1.1.1 2007/04/27 23:01:10 dtikhonov Exp $
 
 package RT::Client::REST::Object;
 

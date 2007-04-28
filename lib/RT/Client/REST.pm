@@ -1,4 +1,4 @@
-# $Id: REST.pm,v 1.5 2006/10/03 16:09:39 dtikhonov Exp $
+# $Id: REST.pm,v 1.3 2007/04/27 23:33:18 dtikhonov Exp $
 # RT::Client::REST
 #
 # Dmitri Tikhonov <dtikhonov@vonage.com>
@@ -23,7 +23,7 @@ use strict;
 use warnings;
 
 use vars qw/$VERSION/;
-$VERSION = '0.27';
+$VERSION = '0.28';
 
 use Error qw(:try);
 use HTTP::Cookies;
@@ -190,7 +190,7 @@ sub get_transaction_ids {
             # Check all the types before recursing, cheaper to catch an
             # error this way.
             $self->_valid_transaction_type($_)
-        } @$type;
+        } @$tr_type;
     } else {
         $tr_type = $self->_valid_transaction_type($tr_type);
         $path = "$type/$parent_id/history/type/$tr_type"

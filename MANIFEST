@@ -45,5 +45,6 @@ t/40-search.t
 t/80-timeout.t
 t/90-pod.t
 t/91-pod-coverage.t
+t/99-kwalitee.t
 TODO
 META.yml                                 Module meta-data (added by MakeMaker)

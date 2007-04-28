@@ -1,4 +1,4 @@
-# $Id: Queue.pm,v 1.1.1.1 2006/08/07 16:04:29 dtikhonov Exp $
+# $Id: Queue.pm,v 1.1.1.1 2007/04/27 23:01:10 dtikhonov Exp $
 #
 # RT::Client::REST::Queue -- queue object representation.
 
