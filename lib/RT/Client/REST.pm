@@ -1,4 +1,4 @@
-# $Id: REST.pm,v 1.3 2007/04/27 23:33:18 dtikhonov Exp $
+# $Id: REST.pm,v 1.4 2007/05/17 23:22:32 dtikhonov Exp $
 # RT::Client::REST
 #
 # Dmitri Tikhonov <dtikhonov@vonage.com>
@@ -23,7 +23,7 @@ use strict;
 use warnings;
 
 use vars qw/$VERSION/;
-$VERSION = '0.28';
+$VERSION = '0.29';
 
 use Error qw(:try);
 use HTTP::Cookies;

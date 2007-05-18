@@ -1,5 +1,10 @@
-# $Id: Changes,v 1.5 2007/04/27 23:44:48 dtikhonov Exp $
+# $Id: Changes,v 1.6 2007/05/17 23:22:18 dtikhonov Exp $
 Revision history for Perl module RT::Client::REST
+
+0.29    Thu May 17 2007 "Dmitri Tikhonov" <dtikhonov@yahoo.com>
+  ! lib/RT/Client/REST/Object.pm
+    * Do not validate values received from the server (from_form
+      method).
 
 0.28    Fri Apr 27 2007 "Dmitri Tikhonov" <dtikhonov@yahoo.com>
   This is a bug fix release.

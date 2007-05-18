@@ -1,4 +1,4 @@
-# $Id: Object.pm,v 1.1.1.1 2007/04/27 23:01:10 dtikhonov Exp $
+# $Id: Object.pm,v 1.2 2007/05/17 23:22:36 dtikhonov Exp $
 
 package RT::Client::REST::Object;
 
@@ -138,7 +138,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION);
-$VERSION = 0.06;
+$VERSION = 0.07;
 
 use Error qw(:try);
 use Params::Validate;
@@ -215,7 +215,12 @@ sub _generate_methods {
             my $self = shift;
 
             if (@_) {
-                if ($settings->{validation}) {
+                my $caller = defined((caller(1))[3]) ? (caller(1))[3] : '';
+
+                if ($settings->{validation} &&
+                    # Don't validate values from the server
+                    $caller ne __PACKAGE__  . '::from_form')
+                {
                     my @v = @_;
                     Params::Validate::validation_options(
                         on_fail => sub {
@@ -228,10 +233,9 @@ sub _generate_methods {
                     );
                     validate_pos(@_, $settings->{validation});
                 }
+
                 $self->{'_' . $method} = shift;
                 $self->_mark_dirty($method);
-
-                my $caller = defined((caller(1))[3]) ? (caller(1))[3] : '';
 
                 # Let's try to autosync, shall we?  Logic is a bit hairy
                 # in order to make it efficient.
