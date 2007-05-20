@@ -1,4 +1,4 @@
-# $Id: REST.pm,v 1.4 2007/05/17 23:22:32 dtikhonov Exp $
+# $Id: REST.pm,v 1.5 2007/05/19 21:01:32 dtikhonov Exp $
 # RT::Client::REST
 #
 # Dmitri Tikhonov <dtikhonov@vonage.com>
@@ -23,7 +23,7 @@ use strict;
 use warnings;
 
 use vars qw/$VERSION/;
-$VERSION = '0.29';
+$VERSION = '0.30';
 
 use Error qw(:try);
 use HTTP::Cookies;
@@ -73,6 +73,7 @@ sub login {
     # even care if it exists.  We watch exceptions: auth. failures and
     # server-side errors we bubble up and ignore all others.
     try {
+        $self->_cookie(undef);  # Start a new session.
         $self->_submit("ticket/1", undef, {
             user => $opts{username},
             pass => $opts{password},

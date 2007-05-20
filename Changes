@@ -1,5 +1,10 @@
-# $Id: Changes,v 1.6 2007/05/17 23:22:18 dtikhonov Exp $
+# $Id: Changes,v 1.7 2007/05/19 21:01:18 dtikhonov Exp $
 Revision history for Perl module RT::Client::REST
+
+0.30    Sat May 19 2007 "Dmitri Tikhonov" <dtikhonov@yahoo.com>
+  ! lib/RT/Client/REST.pm
+    * CPAN.RT #27201 -- if one login fails, subsequent logins should
+      fail as well.
 
 0.29    Thu May 17 2007 "Dmitri Tikhonov" <dtikhonov@yahoo.com>
   ! lib/RT/Client/REST/Object.pm
