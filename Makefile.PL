@@ -12,4 +12,5 @@ WriteMakefile(
                         'Params::Validate'      => 0,
                         'Test::Exception'       => 0,
     },
+    LICENSE         => 'perl',
 );

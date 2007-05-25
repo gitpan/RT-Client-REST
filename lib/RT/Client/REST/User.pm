@@ -1,4 +1,4 @@
-# $Id: User.pm,v 1.1.1.1 2007/04/27 23:01:10 dtikhonov Exp $
+# $Id: User.pm,v 1.2 2007/05/25 17:41:24 dtikhonov Exp $
 #
 # RT::Client::REST::User -- user object representation.
 
@@ -8,7 +8,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION);
-$VERSION = 0.01;
+$VERSION = '0.02';
 
 use Params::Validate qw(:types);
 use RT::Client::REST 0.14;
@@ -23,11 +23,7 @@ RT::Client::REST::User -- user object representation.
 
 =head1 SYNOPSIS
 
-  my $rt = RT::Client::REST->new(
-    server  => $ENV{RTSERVER},
-    username=> $username,
-    password=> $password,
-  );
+  my $rt = RT::Client::REST->new(server => $ENV{RTSERVER});
 
   my $user = RT::Client::REST::User->new(
     rt  => $rt,

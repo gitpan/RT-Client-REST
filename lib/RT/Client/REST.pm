@@ -1,4 +1,4 @@
-# $Id: REST.pm,v 1.5 2007/05/19 21:01:32 dtikhonov Exp $
+# $Id: REST.pm,v 1.6 2007/05/25 17:34:18 dtikhonov Exp $
 # RT::Client::REST
 #
 # Dmitri Tikhonov <dtikhonov@vonage.com>
@@ -23,7 +23,7 @@ use strict;
 use warnings;
 
 use vars qw/$VERSION/;
-$VERSION = '0.30';
+$VERSION = '0.31';
 
 use Error qw(:try);
 use HTTP::Cookies;
@@ -1070,7 +1070,7 @@ Most likely.  Please report.
 
 =head1 VERSION
 
-This is version 0.25 of B<RT::Client::REST>.
+This is version 0.31 of B<RT::Client::REST>.
 
 =head1 AUTHORS
 

@@ -1,4 +1,4 @@
-# $Id: Ticket.pm,v 1.2 2007/04/27 23:13:56 dtikhonov Exp $
+# $Id: Ticket.pm,v 1.3 2007/05/25 17:39:19 dtikhonov Exp $
 #
 # RT::Client::REST::Ticket -- ticket object representation.
 
@@ -8,7 +8,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION);
-$VERSION = 0.07;
+$VERSION = '0.08';
 
 use Error qw(:try);
 use Params::Validate qw(:types);
@@ -26,17 +26,24 @@ RT::Client::REST::Ticket -- this object represents a ticket.
 
 =head1 SYNOPSIS
 
-  my $rt = RT::Client::REST->new(
-    server  => $ENV{RTSERVER},
-    username=> $username,
-    password=> $password,
-  );
+  my $rt = RT::Client::REST->new(server => $ENV{RTSERVER});
 
+  # Update
   my $ticket = RT::Client::REST::Ticket->new(
     rt  => $rt,
     id  => $id,
     priority => 10,
   )->store;
+
+  # Retrieve
+  my $ticket => RT::Client::REST::Ticket->new(
+    rt => $rt,
+    id => $id,
+  )->new->retrieve;
+
+  unless ($ticket->owner eq $me) {
+    $ticket->steal;     # Give me more work!
+  }
 
 =head1 DESCRIPTION
 

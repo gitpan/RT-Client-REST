@@ -1,5 +1,19 @@
-# $Id: Changes,v 1.7 2007/05/19 21:01:18 dtikhonov Exp $
+# $Id: Changes,v 1.9 2007/05/25 17:45:34 dtikhonov Exp $
 Revision history for Perl module RT::Client::REST
+
+0.31    Fri May 25 2007 "Dmitri Tikhonov" <dtikhonov@yahoo.com>
+  ! lib/RT/Client/REST.pm
+    * Fixed 'VERSION' section of POD to print the correct version.
+
+  ! lib/RT/Client/REST/Ticket.pm
+  ! lib/RT/Client/REST/User.pm
+    * Fixed SYNOPSYS in POD to reflect reality.  No code changes.
+
+  ! lib/RT/Client/REST/Queue.pm
+    * CPAN.RT #27267 - fixed POD.  No code changes.
+
+  ! Makefile.PL
+    * Added 'LICENSE' option.
 
 0.30    Sat May 19 2007 "Dmitri Tikhonov" <dtikhonov@yahoo.com>
   ! lib/RT/Client/REST.pm
