@@ -1,4 +1,4 @@
-# $Id: User.pm,v 1.2 2007/05/25 17:41:24 dtikhonov Exp $
+# $Id: User.pm 2 2007-12-23 02:16:25Z dtikhonov $
 #
 # RT::Client::REST::User -- user object representation.
 

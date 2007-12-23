@@ -1,4 +1,4 @@
-# $Id: REST.pm,v 1.6 2007/05/25 17:34:18 dtikhonov Exp $
+# $Id: REST.pm 10 2007-12-23 21:59:01Z dtikhonov $
 # RT::Client::REST
 #
 # Dmitri Tikhonov <dtikhonov@vonage.com>
@@ -23,7 +23,7 @@ use strict;
 use warnings;
 
 use vars qw/$VERSION/;
-$VERSION = '0.31';
+$VERSION = '0.32';
 
 use Error qw(:try);
 use HTTP::Cookies;
@@ -271,6 +271,10 @@ sub edit {
         while (my ($k, $v) = each(%$set)) {
             vpush(\%set, lc($k), $v);
         }
+    }
+    if (defined(my $text = delete($opts{text}))) {
+        $text =~ s/(\n\r?)/$1 /g;
+        vpush(\%set, 'text', $text);
     }
     $set{id} = "$type/$id";
 
@@ -812,9 +816,11 @@ of type C<$type>.
 Set fields specified in parameter B<set> in object C<$id> of type
 C<$type>.
 
-=item create (type => $type, set => \%params)
+=item create (type => $type, set => \%params, text => $text)
 
 Create a new object of type B<$type> and set initial parameters to B<%params>.
+For a ticket object, 'text' parameter can be supplied to set the initial
+text of the ticket.
 Returns numeric ID of the new object.  If numeric ID cannot be parsed from
 the response, B<RT::Client::REST::MalformedRTResponseException> is thrown.
 

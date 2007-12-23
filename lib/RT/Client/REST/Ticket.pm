@@ -1,4 +1,4 @@
-# $Id: Ticket.pm,v 1.3 2007/05/25 17:39:19 dtikhonov Exp $
+# $Id: Ticket.pm 8 2007-12-23 21:53:10Z dtikhonov $
 #
 # RT::Client::REST::Ticket -- ticket object representation.
 
@@ -8,7 +8,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION);
-$VERSION = '0.08';
+$VERSION = '0.09';
 
 use Error qw(:try);
 use Params::Validate qw(:types);
@@ -27,6 +27,14 @@ RT::Client::REST::Ticket -- this object represents a ticket.
 =head1 SYNOPSIS
 
   my $rt = RT::Client::REST->new(server => $ENV{RTSERVER});
+
+  # Create a new ticket:
+  my $ticket = RT::Client::REST::Ticket->new(
+    rt => $rt,
+    queue => "General",
+    subject => $subject,
+  )->store(text => "This is the initial text of the ticket");
+  print "Created a new ticket, ID ", $ticket->id, "\n";
 
   # Update
   my $ticket = RT::Client::REST::Ticket->new(
@@ -297,9 +305,10 @@ L<RT::Client::REST::Object> documentation.
 
 Retrieve RT ticket from database.
 
-=item B<store>
+=item B<store ([text =E<gt> $text])>
 
-Create or update the ticket.
+Create or update the ticket.  When creating a new ticket, optional 'text'
+parameter can be supplied to set the initial text of the ticket.
 
 =item B<search>
 
@@ -481,6 +490,32 @@ for my $method (qw(take untake steal)) {
 }
 
 =back
+
+=head1 CUSTOM FIELDS
+
+This class inherits 'cf' method from L<RT::Client::REST::Object>.  To create
+a ticket with a bunch of custom fields, use the following approach:
+
+  RT::Client::REST::Ticket->new(
+    rt => $rt,
+    # blah blah
+    cf => {
+      'field one' => $value1,
+      'field two' => $another_value,
+    },
+  )->store;
+
+Some more examples:
+
+  # Update a custom field value:
+  $ticket->cf('field one' => $value1);
+  $ticket->store;
+
+  # Get a custom field value:
+  my $another value = $ticket->cf('field two');
+
+  # Get a list of ticket's custom field names:
+  my @custom_fields = $ticket->cf;
 
 =head1 INTERNAL METHODS
 
