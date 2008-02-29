@@ -1,8 +1,10 @@
-# $Id: REST.pm 10 2007-12-23 21:59:01Z dtikhonov $
+# $Id: REST.pm 20 2008-02-29 11:51:01Z dkrotkine $
 # RT::Client::REST
 #
-# Dmitri Tikhonov <dtikhonov@vonage.com>
+# Dmitri Tikhonov <dtikhonov@yahoo.com>
 # April 18, 2006
+#
+# Part of the source is Copyright (c) 2007-2008 Damien Krotkine <dams@cpan.org>
 #
 # This code is adapted (stolen) from /usr/bin/rt that came with RT.  I just
 # wanted to make an actual module out of it.  Therefore, this code is GPLed.
@@ -23,8 +25,9 @@ use strict;
 use warnings;
 
 use vars qw/$VERSION/;
-$VERSION = '0.32';
+$VERSION = '0.33';
 
+use Encode;
 use Error qw(:try);
 use HTTP::Cookies;
 use HTTP::Request::Common;
@@ -473,6 +476,11 @@ sub _submit {
     my $res = $self->_ua->request($req);
     #DEBUG(3, $res->as_string);
 
+    # decode content from the proper encoding
+    my $encoding
+        = $res->content_encoding || (split(/=/, $res->header("Content-Type")))[1] || 'iso-8859-1';
+    $res->content( decode($encoding, $res->content) );
+
     if ($res->is_success) {
         # The content of the response we get from the RT server consists
         # of an HTTP-like status line followed by optional header lines,
@@ -745,11 +753,6 @@ B<RT::Client::REST> is B</usr/bin/rt> converted to a Perl module.  I needed
 to implement some RT interactions from my application, but did not feel that
 invoking a shell command is appropriate.  Thus, I took B<rt> tool, written
 by Abhijit Menon-Sen, and converted it to an object-oriented Perl module.
-
-B<RT::Client::REST> does not (at the moment, see TODO file) retrieve forms from
-RT server, which is either good or bad, depending how you look at it.  More
-work on this module will be performed in the future as I get a better grip
-of this whole REST business.
 
 =head1 USAGE NOTES
 
@@ -1074,14 +1077,21 @@ L<RT::Client::REST::Exception>
 
 Most likely.  Please report.
 
+=head1 VARIOUS NOTES
+
+B<RT::Client::REST> does not (at the moment, see TODO file) retrieve forms from
+RT server, which is either good or bad, depending how you look at it.
+
 =head1 VERSION
 
-This is version 0.31 of B<RT::Client::REST>.
+This is version 0.32 of B<RT::Client::REST>.
 
 =head1 AUTHORS
 
 Original /usr/bin/rt was written by Abhijit Menon-Sen <ams@wiw.org>.  rt
-was later converted to this module by Dmitri Tikhonov <dtikhonov@vonage.com>
+was later converted to this module by Dmitri Tikhonov <dtikhonov@yahoo.com>.
+In January of 2008, Damien "dams" Krotkine <dams@cpan.org> joined as the
+project's co-maintainer.
 
 =head1 LICENSE
 

@@ -1,4 +1,4 @@
-# $Id: Exception.pm 2 2007-12-23 02:16:25Z dtikhonov $
+# $Id: Exception.pm 17 2008-02-01 03:24:13Z dtikhonov $
 #
 # We are going to throw exceptions, because we're cool like that.
 package RT::Client::REST::Exception;
@@ -340,6 +340,6 @@ L<RT::Client::REST>.
 
 =head1 AUTHOR
 
-Dmitri Tikhonov <dtikhonov@vonage.com>
+Dmitri Tikhonov <dtikhonov@yahoo.com>
 
 =cut
