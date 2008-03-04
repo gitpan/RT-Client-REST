@@ -1,4 +1,4 @@
-# $Id: REST.pm 20 2008-02-29 11:51:01Z dkrotkine $
+# $Id: REST.pm 22 2008-03-04 10:16:37Z dkrotkine $
 # RT::Client::REST
 #
 # Dmitri Tikhonov <dtikhonov@yahoo.com>
@@ -25,7 +25,7 @@ use strict;
 use warnings;
 
 use vars qw/$VERSION/;
-$VERSION = '0.33';
+$VERSION = '0.34';
 
 use Encode;
 use Error qw(:try);

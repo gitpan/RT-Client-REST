@@ -1,5 +1,9 @@
-# $Id: Changes 20 2008-02-29 11:51:01Z dkrotkine $
+# $Id: Changes 22 2008-03-04 10:16:37Z dkrotkine $
 Revision history for Perl module RT::Client::REST
+
+0.34    Tue Mar 04 2008 "Damien Krotkine" <dams@cpan.org>
+  - Mon, 03 Mar 2008 "Damien Krotkine" <dams@cpan.org>
+    added Encode prerequist
 
 0.33    Fri Feb 29 2008 "Damien Krotkine" <dams@cpan.org>
   - Fri, 01 Feb 2008 "Dmitri Tikhonov" <dtikhonov@yahoo.com>
