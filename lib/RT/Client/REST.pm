@@ -1,4 +1,4 @@
-# $Id: REST.pm 22 2008-03-04 10:16:37Z dkrotkine $
+# $Id: REST.pm 24 2008-04-15 09:19:15Z dkrotkine $
 # RT::Client::REST
 #
 # Dmitri Tikhonov <dtikhonov@yahoo.com>
@@ -25,9 +25,8 @@ use strict;
 use warnings;
 
 use vars qw/$VERSION/;
-$VERSION = '0.34';
+$VERSION = '0.35';
 
-use Encode;
 use Error qw(:try);
 use HTTP::Cookies;
 use HTTP::Request::Common;
@@ -112,7 +111,7 @@ sub show {
         $id = $self->_valid_numeric_object_id(delete($opts{id}));
     }
 
-    my $form = form_parse($self->_submit("$type/$id")->content);
+    my $form = form_parse($self->_submit("$type/$id")->decoded_content);
     my ($c, $o, $k, $e) = @{$$form[0]};
 
     if (!@$o && $c) {
@@ -133,7 +132,7 @@ sub get_attachment_ids {
     my $id = $self->_valid_numeric_object_id(delete($opts{id}));
 
     my $form = form_parse(
-        $self->_submit("$type/$id/attachments/")->content
+        $self->_submit("$type/$id/attachments/")->decoded_content
     );
     my ($c, $o, $k, $e) = @{$$form[0]};
 
@@ -156,7 +155,7 @@ sub get_attachment {
     my $id = $self->_valid_numeric_object_id(delete($opts{id}));
 
     my $form = form_parse(
-        $self->_submit("$type/$parent_id/attachments/$id")->content
+        $self->_submit("$type/$parent_id/attachments/$id")->decoded_content
     );
     my ($c, $o, $k, $e) = @{$$form[0]};
 
@@ -200,7 +199,7 @@ sub get_transaction_ids {
         $path = "$type/$parent_id/history/type/$tr_type"
     }
 
-    my $form = form_parse( $self->_submit($path)->content );
+    my $form = form_parse( $self->_submit($path)->decoded_content );
     my ($c, $o, $k, $e) = @{$$form[0]};
 
     if (!length($e)) {
@@ -227,7 +226,7 @@ sub get_transaction {
     my $id = $self->_valid_numeric_object_id(delete($opts{id}));
 
     my $form = form_parse(
-        $self->_submit("$type/$parent_id/history/id/$id")->content
+        $self->_submit("$type/$parent_id/history/id/$id")->decoded_content
     );
     my ($c, $o, $k, $e) = @{$$form[0]};
 
@@ -254,7 +253,7 @@ sub search {
         (defined($orderby) ? (orderby => $orderby) : ()),
     });
 
-    return $r->content =~ m/^(\d+):/gm;
+    return $r->decoded_content =~ m/^(\d+):/gm;
 }
 
 sub edit {
@@ -287,15 +286,15 @@ sub edit {
 
     # This seems to be a bug on the server side: returning 200 Ok when
     # ticket creation (for instance) fails.  We check it here:
-    if ($r->content =~ /not/) {
-        RT::Client::REST::Exception->_rt_content_to_exception($r->content)
+    if ($r->decoded_content =~ /not/) {
+        RT::Client::REST::Exception->_rt_content_to_exception($r->decoded_content)
         ->throw(
             code    => $r->code,
-            message => "RT server returned this error: " .  $r->content,
+            message => "RT server returned this error: " .  $r->decoded_content,
         );
     }
 
-    if ($r->content =~ /^#[^\d]+(\d+) (?:created|updated)/) {
+    if ($r->decoded_content =~ /^#[^\d]+(\d+) (?:created|updated)/) {
         return $1;
     } else {
         RT::Client::REST::MalformedRTResponseException->throw(
@@ -409,7 +408,7 @@ sub _ticket_action {
     my $text = form_compose([[ '', ['Action'], { Action => $action }, ]]);
 
     my $form = form_parse(
-        $self->_submit("/ticket/$id/take", { content => $text })->content
+        $self->_submit("/ticket/$id/take", { content => $text })->decoded_content
     );
     my ($c, $o, $k, $e) = @{$$form[0]};
 
@@ -476,17 +475,12 @@ sub _submit {
     my $res = $self->_ua->request($req);
     #DEBUG(3, $res->as_string);
 
-    # decode content from the proper encoding
-    my $encoding
-        = $res->content_encoding || (split(/=/, $res->header("Content-Type")))[1] || 'iso-8859-1';
-    $res->content( decode($encoding, $res->content) );
-
     if ($res->is_success) {
         # The content of the response we get from the RT server consists
         # of an HTTP-like status line followed by optional header lines,
         # a blank line, and arbitrary text.
 
-        my ($head, $text) = split /\n\n/, $res->content, 2;
+        my ($head, $text) = split /\n\n/, $res->decoded_content, 2;
         my ($status, @headers) = split /\n/, $head;
         $text =~ s/\n*$/\n/ if ($text);
 
@@ -502,7 +496,7 @@ sub _submit {
         # not sufficiently portable and uncomplicated.)
         $res->code($1);
         $res->message($2);
-        $res->content($text);
+        $res->decoded_content($text);
         #$session->update($res) if ($res->is_success || $res->code != 401);
         if ($res->header('set-cookie')) {
             my $jar = HTTP::Cookies->new;
@@ -529,11 +523,11 @@ sub _submit {
                 }
             } else {
                 RT::Client::REST::Exception->_rt_content_to_exception(
-                    $res->content)
+                    $res->decoded_content)
                 ->throw(
                     code    => $res->code,
                     message => "RT server returned this error: " .
-                               $res->content,
+                               $res->decoded_content,
                 );
             }
         }
@@ -541,7 +535,7 @@ sub _submit {
         500 == $res->code &&
         # Older versions of HTTP::Response populate 'message', newer
         # versions populate 'content'.  This catches both cases.
-        ($res->content || $res->message) =~ /read timeout/
+        ($res->decoded_content || $res->message) =~ /read timeout/
     ) {
         RT::Client::REST::RequestTimedOutException->throw(
             "Your request to " . $self->server . " timed out",
