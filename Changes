@@ -1,5 +1,9 @@
-# $Id: Changes 25 2008-04-15 09:21:58Z dkrotkine $
+# $Id: Changes 27 2008-05-11 00:44:59Z dkrotkine $
 Revision history for Perl module RT::Client::REST
+
+0.36    Sat May 10 2008 "Damien Krotkine" <dams@cpan.org>
+  - Sat May 10 2008 "Damien Krotkine" <dams@cpan.org>
+    Bug 35692 and 35146 : added test and fix.
 
 0.35    Tue Apr 15 2008 "Damien Krotkine" <dams@cpan.org>
   - Tue Mar 04 2008 "Damien Krotkine" <dams@cpan.org>
