@@ -1,4 +1,4 @@
-# $Id: REST.pm 27 2008-05-11 00:44:59Z dkrotkine $
+# $Id: REST.pm 30 2008-08-16 00:58:07Z dtikhonov $
 # RT::Client::REST
 #
 # Dmitri Tikhonov <dtikhonov@yahoo.com>
@@ -25,7 +25,7 @@ use strict;
 use warnings;
 
 use vars qw/$VERSION/;
-$VERSION = '0.36';
+$VERSION = '0.37';
 
 use Error qw(:try);
 use HTTP::Cookies;
@@ -737,6 +737,8 @@ RT::Client::REST -- talk to RT installation using REST protocol.
   try {
     # Get ticket #10
     $ticket = $rt->show(type => 'ticket', id => 10);
+  } catch RT::Client::REST::UnauthorizedActionException with {
+    print "You are not authorized to view ticket #10\n";
   } catch RT::Client::REST::Exception with {
     # something went wrong.
   };
@@ -1078,7 +1080,7 @@ RT server, which is either good or bad, depending how you look at it.
 
 =head1 VERSION
 
-This is version 0.32 of B<RT::Client::REST>.
+This is version 0.37 of B<RT::Client::REST>.
 
 =head1 AUTHORS
 

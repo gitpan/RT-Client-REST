@@ -1,13 +1,14 @@
-# $Id: Exception.pm 17 2008-02-01 03:24:13Z dtikhonov $
+# $Id: Exception.pm 30 2008-08-16 00:58:07Z dtikhonov $
 #
 # We are going to throw exceptions, because we're cool like that.
 package RT::Client::REST::Exception;
+use base qw(Exception::Class);
 
 use strict;
 use warnings;
 
 use vars qw($VERSION);
-$VERSION = 0.18;
+$VERSION = '0.19';
 
 use Error;
 

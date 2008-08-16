@@ -1,4 +1,4 @@
-# $Id: Ticket.pm 8 2007-12-23 21:53:10Z dtikhonov $
+# $Id: Ticket.pm 28 2008-08-16 00:23:30Z dtikhonov $
 #
 # RT::Client::REST::Ticket -- ticket object representation.
 
@@ -47,7 +47,7 @@ RT::Client::REST::Ticket -- this object represents a ticket.
   my $ticket => RT::Client::REST::Ticket->new(
     rt => $rt,
     id => $id,
-  )->new->retrieve;
+  )->retrieve;
 
   unless ($ticket->owner eq $me) {
     $ticket->steal;     # Give me more work!
