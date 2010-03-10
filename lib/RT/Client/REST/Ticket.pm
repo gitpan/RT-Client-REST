@@ -1,4 +1,4 @@
-# $Id: Ticket.pm 28 2008-08-16 00:23:30Z dtikhonov $
+# $Id: Ticket.pm 36 2009-04-10 18:43:46Z belg4mit $
 #
 # RT::Client::REST::Ticket -- ticket object representation.
 
@@ -8,7 +8,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION);
-$VERSION = '0.09';
+$VERSION = 0.10;
 
 use Error qw(:try);
 use Params::Validate qw(:types);
@@ -136,6 +136,13 @@ sub _attributes {{
         list        => 1,
     },
 
+    requestor      => {
+        validation  => {
+            type    => ARRAYREF,
+        },
+        list        => 1,
+    },
+
     cc              => {
         validation  => {
             type    => ARRAYREF,
@@ -254,11 +261,22 @@ Ticket priority.  Usually a numeric value.
 
 =item B<final_priority>
 
+=item B<requestor>
+
+This is the attribute for setting the requestor on ticket creation.
+If you use requestors to do this in 3.8, the recipient may not receive
+an autoreply from RT because the ticket is initially created as the user
+your REST session is connected as.
+
+It is a list attribute (for explanation of list attributes, see
+B<LIST ATTRIBUTE PROPERTIES> in L<RT::Client::REST::Object>). 
+
 =item B<requestors>
 
-This is a list attribute (for explanation of list attributes, see
-B<LIST ATTRIBUTE PROPERTIES> in L<RT::Client::REST::Object>).  Contains
-e-mail addresses of the requestors.
+This contains e-mail addresses of the requestors.
+
+It is a list attribute (for explanation of list attributes, see
+B<LIST ATTRIBUTE PROPERTIES> in L<RT::Client::REST::Object>). 
 
 =item B<cc>
 

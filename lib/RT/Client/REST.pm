@@ -1,4 +1,4 @@
-# $Id: REST.pm 30 2008-08-16 00:58:07Z dtikhonov $
+# $Id: REST.pm 38 2010-03-10 17:30:50Z pplusdomain $
 # RT::Client::REST
 #
 # Dmitri Tikhonov <dtikhonov@yahoo.com>
@@ -25,7 +25,7 @@ use strict;
 use warnings;
 
 use vars qw/$VERSION/;
-$VERSION = '0.37';
+$VERSION = 0.40;
 
 use Error qw(:try);
 use HTTP::Cookies;
@@ -1080,14 +1080,14 @@ RT server, which is either good or bad, depending how you look at it.
 
 =head1 VERSION
 
-This is version 0.37 of B<RT::Client::REST>.
+This is version 0.40 of B<RT::Client::REST>.
 
 =head1 AUTHORS
 
 Original /usr/bin/rt was written by Abhijit Menon-Sen <ams@wiw.org>.  rt
 was later converted to this module by Dmitri Tikhonov <dtikhonov@yahoo.com>.
 In January of 2008, Damien "dams" Krotkine <dams@cpan.org> joined as the
-project's co-maintainer.
+project's co-maintainer. JLMARTIN has become co-maintainer as of March 2010.
 
 =head1 LICENSE
 
