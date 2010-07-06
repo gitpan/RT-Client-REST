@@ -1,4 +1,4 @@
-# $Id: Ticket.pm 36 2009-04-10 18:43:46Z belg4mit $
+# $Id: Ticket.pm 41 2010-06-16 02:11:14Z bobtfish@bobtfish.net $
 #
 # RT::Client::REST::Ticket -- ticket object representation.
 
@@ -290,7 +290,8 @@ on a ticket.
 
 =item B<created>
 
-Time at which ticket was created.
+Time at which ticket was created. Note that this is an immutable field
+and therefore the value cannot be changed..
 
 =item B<starts>
 

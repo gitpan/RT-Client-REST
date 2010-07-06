@@ -1,4 +1,4 @@
-# $Id: REST.pm 38 2010-03-10 17:30:50Z pplusdomain $
+# $Id: REST.pm 42 2010-07-06 08:21:54Z bobtfish@bobtfish.net $
 # RT::Client::REST
 #
 # Dmitri Tikhonov <dtikhonov@yahoo.com>
@@ -25,7 +25,8 @@ use strict;
 use warnings;
 
 use vars qw/$VERSION/;
-$VERSION = 0.40;
+$VERSION = '0.41';
+$VERSION = eval $VERSION;
 
 use Error qw(:try);
 use HTTP::Cookies;

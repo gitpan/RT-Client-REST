@@ -1,28 +1,34 @@
---- #YAML:1.0
-name:               RT-Client-REST
-version:            0.4
-abstract:           ~
-author:  []
-license:            perl
-distribution_type:  module
-configure_requires:
-    ExtUtils::MakeMaker:  0
+---
+abstract: ~
+author:
+  - 'Original /usr/bin/rt was written by Abhijit Menon-Sen <ams@wiw.org>.  rt'
 build_requires:
-    ExtUtils::MakeMaker:  0
-requires:
-    Encode:               0
-    Error:                0
-    Exception::Class:     0
-    HTTP::Cookies:        0
-    HTTP::Request::Common:  0
-    LWP:                  0
-    Params::Validate:     0
-    Test::Exception:      0
-no_index:
-    directory:
-        - t
-        - inc
-generated_by:       ExtUtils::MakeMaker version 6.56
+  ExtUtils::MakeMaker: 6.42
+  Test::Exception: 0
+  Test::More: 0
+configure_requires:
+  ExtUtils::MakeMaker: 6.42
+distribution_type: module
+generated_by: 'Module::Install version 0.99'
+license: perl
 meta-spec:
-    url:      http://module-build.sourceforge.net/META-spec-v1.4.html
-    version:  1.4
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: RT-Client-REST
+no_index:
+  directory:
+    - examples
+    - inc
+    - t
+requires:
+  Encode: 0
+  Error: 0
+  Exception::Class: 0
+  HTTP::Cookies: 0
+  HTTP::Request::Common: 0
+  LWP: 0
+  Params::Validate: 0
+resources:
+  license: http://dev.perl.org/licenses/
+  repository: http://rt-client-rest.googlecode.com/svn/trunk/
+version: 0.41

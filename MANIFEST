@@ -17,20 +17,29 @@ examples/show_ticket.pl
 examples/show_transaction.pl
 examples/show_user.pl
 examples/take_ticket.pl
+inc/Module/Install.pm
+inc/Module/Install/Base.pm
+inc/Module/Install/Can.pm
+inc/Module/Install/Fetch.pm
+inc/Module/Install/Makefile.pm
+inc/Module/Install/Metadata.pm
+inc/Module/Install/Win32.pm
+inc/Module/Install/WriteAll.pm
+lib/RT/Client/REST.pm
 lib/RT/Client/REST/Attachment.pm
 lib/RT/Client/REST/Exception.pm
 lib/RT/Client/REST/Forms.pm
 lib/RT/Client/REST/HTTPClient.pm
-lib/RT/Client/REST/Object/Exception.pm
 lib/RT/Client/REST/Object.pm
-lib/RT/Client/REST.pm
+lib/RT/Client/REST/Object/Exception.pm
 lib/RT/Client/REST/Queue.pm
 lib/RT/Client/REST/SearchResult.pm
 lib/RT/Client/REST/Ticket.pm
 lib/RT/Client/REST/Transaction.pm
 lib/RT/Client/REST/User.pm
 Makefile.PL
-MANIFEST
+MANIFEST			This list of files
+META.yml
 README
 t/01-use.t
 t/10-core.t
@@ -48,4 +57,3 @@ t/90-pod.t
 t/91-pod-coverage.t
 t/99-kwalitee.t
 TODO
-META.yml                                 Module meta-data (added by MakeMaker)
