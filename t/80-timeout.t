@@ -11,7 +11,7 @@ use Error qw(:try);
 use IO::Socket;
 use RT::Client::REST;
 
-plan( skip_all => 'skip failing executable tests on windows' ) if $^O eq 'MSWin32';
+plan( skip_all => 'Timeout tests hanging on Windows' ) if $^O eq 'MSWin32';
 
 my $server = IO::Socket::INET->new(
     Type => SOCK_STREAM,

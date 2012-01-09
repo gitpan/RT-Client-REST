@@ -1,4 +1,4 @@
-# $Id: REST.pm 45 2011-11-29 18:37:31Z pplusdomain@gmail.com $
+# $Id: REST.pm 53 2012-01-09 18:09:44Z pplusdomain@gmail.com $
 # RT::Client::REST
 #
 # Dmitri Tikhonov <dtikhonov@yahoo.com>
@@ -25,7 +25,7 @@ use strict;
 use warnings;
 
 use vars qw/$VERSION/;
-$VERSION = '0.42';
+$VERSION = '0.43';
 $VERSION = eval $VERSION;
 
 use Error qw(:try);
@@ -66,21 +66,21 @@ sub login {
     $self->_assert_even(@_);
 
     my %opts = @_;
-    unless (defined($opts{username}) and defined($opts{password})) {
+    unless (scalar(keys %opts) > 0) {
         RT::Client::REST::InvalidParameterValueException->throw(
-            "You must provide username and password to log in",
+            "You must provide credentials (user and pass) to log in",
         );
     }
+    # back-compat hack
+    if (defined $opts{username}){ $opts{user} = $opts{username}; delete $opts{username} }
+    if (defined $opts{password}){ $opts{pass} = $opts{password}; delete $opts{password} }
 
     # OK, here's how login works.  We request to see ticket 1.  We don't
     # even care if it exists.  We watch exceptions: auth. failures and
     # server-side errors we bubble up and ignore all others.
     try {
         $self->_cookie(undef);  # Start a new session.
-        $self->_submit("ticket/1", undef, {
-            user => $opts{username},
-            pass => $opts{password},
-        });
+        $self->_submit("ticket/1", undef, \%opts);
     } catch RT::Client::REST::AuthenticationFailureException with {
         shift->rethrow;
     } catch RT::Client::REST::MalformedRTResponseException with {
@@ -93,7 +93,6 @@ sub login {
         # ignore others.
     };
 }
-
 
 sub show {
     my $self = shift;
@@ -162,6 +161,53 @@ sub get_attachment {
 
     if (!@$o && $c) {
         RT::Client::REST::Exception->_rt_content_to_exception($c)->throw;
+    }
+
+    return $k;
+}
+
+sub get_links {
+    my $self = shift;
+
+    $self->_assert_even(@_);
+
+    my %opts = @_;
+
+    my $type = $self->_valid_type(delete($opts{type}) || 'ticket');
+    my $id = $self->_valid_numeric_object_id(delete($opts{id}));
+
+    my $form = form_parse(
+        $self->_submit("$type/$id/links/$id")->decoded_content
+    );
+    my ($c, $o, $k, $e) = @{$$form[0]};
+
+    if (!@$o && $c) {
+        RT::Client::REST::Exception->_rt_content_to_exception($c)->throw;
+    }
+
+    # Turn the links into id lists
+    foreach my $key (keys(%$k)) {
+        try {
+            $self->_valid_link_type($key);
+            my @list = split(/\s*,\s*/,$k->{$key});
+            #use Data::Dumper;
+            #print STDERR Dumper(\@list);
+            my @newlist = ();
+            foreach my $val (@list) {
+               if ($val =~ /^fsck\.com-\w+\:\/\/(.*?)\/(.*?)\/(\d+)$/) {
+                   # We just want the ids, not the URI
+                   push(@newlist, {'type' => $2, 'instance' => $1, 'id' => $3 });
+               } else {
+                   # Something we don't recognise
+                   push(@newlist, { 'url' => $val });
+               }
+            }
+            # Copy the newly created list
+            $k->{$key} = ();
+            $k->{$key} = \@newlist;
+        } catch RT::Client::REST::InvalidParameterValueException with {
+            # Skip it because the keys are not always valid e.g., 'id'
+        }
     }
 
     return $k;
@@ -375,7 +421,7 @@ sub merge_tickets {
     return;
 }
 
-sub link_tickets {
+sub link {
     my $self = shift;
     $self->_assert_even(@_);
     my %opts = @_;
@@ -383,8 +429,13 @@ sub link_tickets {
         @opts{qw(src dst)};
     my $ltype = $self->_valid_link_type(delete($opts{link_type}));
     my $del = (exists($opts{'unlink'}) ? 1 : '');
+    my $type = $self->_valid_type(delete($opts{type}) || 'ticket');
 
-    $self->_submit("ticket/link", {
+    #$self->_submit("$type/$src/link", {
+    #id => $from, rel => $rel, to => $to, del => $del
+    #}
+
+    $self->_submit("$type/link", {
         id  => $src,
         rel => $ltype,
         to  => $dst,
@@ -394,7 +445,10 @@ sub link_tickets {
     return;
 }
 
-sub unlink_tickets { shift->link_tickets(@_, unlink => 1) }
+sub link_tickets { shift->link(@_, type => 'ticket') }
+
+sub unlink { shift->link(@_, unlink => 1) }
+sub unlink_tickets { shift->link(@_, type => 'ticket', unlink => 1) }
 
 sub _ticket_action {
     my $self = shift;
@@ -421,6 +475,8 @@ sub _ticket_action {
 sub take { shift->_ticket_action(@_, action => 'take') }
 sub untake { shift->_ticket_action(@_, action => 'untake') }
 sub steal { shift->_ticket_action(@_, action => 'steal') }
+
+sub DEBUG { shift; print STDERR @_ }
 
 sub _submit {
     my ($self, $uri, $content, $auth) = @_;
@@ -656,8 +712,8 @@ sub _valid_comment_message {
 
 sub _valid_link_type {
     my ($self, $type) = @_;
-    my @types = qw(DependsOn DependedOnBy RefersTo ReferredToBy HasMember
-                   MemberOf);
+    my @types = qw(DependsOn DependedOnBy RefersTo ReferredToBy HasMember Members
+                   MemberOf RunsOn IsRunning ComponentOf HasComponent);
 
     unless (grep { lc($type) eq lc($_) } @types) {
         RT::Client::REST::InvalidParameterValueException->throw(
@@ -799,6 +855,7 @@ returns username and password:
 =back
 
 =item login (username => 'root', password => 'password')
+=item login (my_userfield => 'root', my_passfield => 'password')
 
 Log in to RT.  Throws an exception on error.
 
