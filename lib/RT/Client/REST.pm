@@ -1,4 +1,4 @@
-# $Id: REST.pm 42 2010-07-06 08:21:54Z bobtfish@bobtfish.net $
+# $Id: REST.pm 45 2011-11-29 18:37:31Z pplusdomain@gmail.com $
 # RT::Client::REST
 #
 # Dmitri Tikhonov <dtikhonov@yahoo.com>
@@ -25,7 +25,7 @@ use strict;
 use warnings;
 
 use vars qw/$VERSION/;
-$VERSION = '0.41';
+$VERSION = '0.42';
 $VERSION = eval $VERSION;
 
 use Error qw(:try);
@@ -105,7 +105,7 @@ sub show {
     my $type = $self->_valid_type(delete($opts{type}));
     my $id;
 
-    if (grep { $type eq $_ } (qw(user queue))) {
+    if (grep { $type eq $_ } (qw(user queue group))) {
         # User or queue ID does not have to be numeric
         $id = delete($opts{id});
     } else {
@@ -371,7 +371,7 @@ sub merge_tickets {
     my %opts = @_;
     my ($src, $dst) = map { $self->_valid_numeric_object_id($_) }
         @opts{qw(src dst)};
-    $self->_submit("ticket/merge/$src", { into => $dst});
+    $self->_submit("ticket/$src/merge/$dst");
     return;
 }
 

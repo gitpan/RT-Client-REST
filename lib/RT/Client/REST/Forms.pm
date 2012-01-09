@@ -1,4 +1,4 @@
-# $Id: Forms.pm 34 2009-04-10 01:45:19Z belg4mit $
+# $Id: Forms.pm 46 2011-11-29 18:52:49Z pplusdomain@gmail.com $
 #
 # This package provides functions from RT::Interface::REST, because we don't
 # want to depend on rt being installed.  Derived from rt 3.4.5.
@@ -15,7 +15,7 @@ use vars qw(@EXPORT @ISA $VERSION);
 @EXPORT = qw(expand_list form_parse form_compose vpush vsplit);
 $VERSION = .02;
 
-my $CF_name = qr%[\s\w:()/-]+%;
+my $CF_name = qr%[\s\w:()?/-]+%;
 my $field   = qr/[a-z][\w-]*|C(?:ustom)?F(?:ield)?-$CF_name|CF\.{$CF_name}/i;
 
 sub expand_list {

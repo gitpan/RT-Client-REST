@@ -3,6 +3,7 @@ examples/comment_on_ticket.pl
 examples/create_ticket.pl
 examples/create_user.pl
 examples/edit_custom_field.pl
+examples/edit_group.pl
 examples/edit_ticket.pl
 examples/edit_user.pl
 examples/list_attachments.pl
@@ -12,23 +13,17 @@ examples/list_transactions_rt.pl
 examples/report-bug-to-cpan.pl
 examples/search_tickets.pl
 examples/show_attachment.pl
+examples/show_group.pl
 examples/show_queue.pl
 examples/show_ticket.pl
 examples/show_transaction.pl
 examples/show_user.pl
 examples/take_ticket.pl
-inc/Module/Install.pm
-inc/Module/Install/Base.pm
-inc/Module/Install/Can.pm
-inc/Module/Install/Fetch.pm
-inc/Module/Install/Makefile.pm
-inc/Module/Install/Metadata.pm
-inc/Module/Install/Win32.pm
-inc/Module/Install/WriteAll.pm
 lib/RT/Client/REST.pm
 lib/RT/Client/REST/Attachment.pm
 lib/RT/Client/REST/Exception.pm
 lib/RT/Client/REST/Forms.pm
+lib/RT/Client/REST/Group.pm
 lib/RT/Client/REST/HTTPClient.pm
 lib/RT/Client/REST/Object.pm
 lib/RT/Client/REST/Object/Exception.pm
@@ -40,8 +35,11 @@ lib/RT/Client/REST/User.pm
 Makefile.PL
 MANIFEST			This list of files
 META.yml
+MYMETA.json
+MYMETA.yml
 README
 t/01-use.t
+t/026-group.t
 t/10-core.t
 t/20-object.t
 t/21-user.t

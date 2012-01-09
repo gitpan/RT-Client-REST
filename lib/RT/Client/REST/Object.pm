@@ -1,4 +1,4 @@
-# $Id: Object.pm 34 2009-04-10 01:45:19Z belg4mit $
+# $Id: Object.pm 46 2011-11-29 18:52:49Z pplusdomain@gmail.com $
 
 package RT::Client::REST::Object;
 
@@ -437,7 +437,7 @@ sub from_form {
     # Now set attributes:
     while (my ($key, $value) = each(%$hash)) {
         # Handle custom fields, ideally /(?(1)})/ would be appened to RE
-	if( $key =~ m%^(?:cf|customfield)(?:-|\.{)([\s\w_:()/-]+)% ){
+	if( $key =~ m%^(?:cf|customfield)(?:-|\.{)([\s\w_:()?/-]+)% ){
 	    $key = $1;
 
             # XXX very sketchy. Will fail on long form data e.g; wiki CF
