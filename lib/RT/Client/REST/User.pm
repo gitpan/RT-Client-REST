@@ -1,4 +1,4 @@
-# $Id: User.pm 49 2011-12-27 10:15:31Z pplusdomain@gmail.com $
+# $Id: User.pm 60 2012-10-27 06:43:24Z pplusdomain@gmail.com $
 #
 # RT::Client::REST::User -- user object representation.
 
@@ -33,7 +33,7 @@ RT::Client::REST::User -- user object representation.
 =head1 DESCRIPTION
 
 B<RT::Client::REST::User> is based on L<RT::Client::REST::Object>.
-The representation allows to retrieve, edit, comment on, and create
+The representation allows one to retrieve, edit, comment on, and create
 users in RT.
 
 Note: RT currently does not allow REST client to search users.

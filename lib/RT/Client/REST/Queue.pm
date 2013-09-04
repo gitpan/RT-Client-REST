@@ -1,4 +1,4 @@
-# $Id: Queue.pm 2 2007-12-23 02:16:25Z dtikhonov $
+# $Id: Queue.pm 60 2012-10-27 06:43:24Z pplusdomain@gmail.com $
 #
 # RT::Client::REST::Queue -- queue object representation.
 
@@ -34,7 +34,7 @@ RT::Client::REST::Queue -- queue object representation.
 =head1 DESCRIPTION
 
 B<RT::Client::REST::Queue> is based on L<RT::Client::REST::Object>.
-The representation allows to retrieve, edit, comment on, and create
+The representation allows one to retrieve, edit, comment on, and create
 queue in RT.
 
 Note: RT currently does not allow REST client to search queues.

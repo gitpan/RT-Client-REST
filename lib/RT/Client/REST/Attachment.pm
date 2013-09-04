@@ -1,4 +1,4 @@
-# $Id: Attachment.pm 2 2007-12-23 02:16:25Z dtikhonov $
+# $Id: Attachment.pm 57 2012-04-18 14:45:09Z bobtfish@bobtfish.net $
 #
 # RT::Client::REST::Attachment -- attachment object representation.
 
@@ -77,6 +77,7 @@ sub _attributes {{
         validation  => {
             type    => SCALAR,
         },
+        is_datetime => 1,
     },
 
     content => {

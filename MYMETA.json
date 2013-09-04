@@ -4,7 +4,7 @@
       "Original /usr/bin/rt was written by Abhijit Menon-Sen <ams@wiw.org>.  rt"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Module::Install version 0.97, CPAN::Meta::Converter version 2.112621",
+   "generated_by" : "ExtUtils::MakeMaker version 6.66, CPAN::Meta::Converter version 2.120921",
    "license" : [
       "perl_5"
    ],
@@ -15,44 +15,38 @@
    "name" : "RT-Client-REST",
    "no_index" : {
       "directory" : [
-         "examples",
-         "inc",
-         "t"
+         "t",
+         "inc"
       ]
    },
    "prereqs" : {
       "build" : {
          "requires" : {
-            "ExtUtils::MakeMaker" : "6.42",
-            "Test::Exception" : 0,
-            "Test::More" : 0
+            "ExtUtils::MakeMaker" : "6.36",
+            "Test::Exception" : "0",
+            "Test::More" : "0"
          }
       },
       "configure" : {
          "requires" : {
-            "ExtUtils::MakeMaker" : "6.42"
+            "ExtUtils::MakeMaker" : "0"
          }
       },
       "runtime" : {
          "requires" : {
-            "Encode" : 0,
-            "Error" : 0,
-            "Exception::Class" : 0,
-            "HTTP::Cookies" : 0,
-            "HTTP::Request::Common" : 0,
-            "LWP" : 0,
-            "Params::Validate" : 0
+            "DateTime" : "0",
+            "DateTime::Format::DateParse" : "0",
+            "Encode" : "0",
+            "Error" : "0",
+            "Exception::Class" : "0",
+            "HTTP::Cookies" : "0",
+            "HTTP::Request::Common" : "0",
+            "LWP" : "0",
+            "Params::Validate" : "0",
+            "URI" : "0"
          }
       }
    },
    "release_status" : "stable",
-   "resources" : {
-      "license" : [
-         "http://dev.perl.org/licenses/"
-      ],
-      "repository" : {
-         "url" : "http://rt-client-rest.googlecode.com/svn/trunk/"
-      }
-   },
-   "version" : "0.42"
+   "version" : "0.44"
 }

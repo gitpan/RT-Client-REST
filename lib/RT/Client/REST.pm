@@ -1,4 +1,4 @@
-# $Id: REST.pm 53 2012-01-09 18:09:44Z pplusdomain@gmail.com $
+# $Id: REST.pm 64 2012-10-27 07:12:07Z pplusdomain@gmail.com $
 # RT::Client::REST
 #
 # Dmitri Tikhonov <dtikhonov@yahoo.com>
@@ -25,7 +25,7 @@ use strict;
 use warnings;
 
 use vars qw/$VERSION/;
-$VERSION = '0.43';
+$VERSION = '0.44';
 $VERSION = eval $VERSION;
 
 use Error qw(:try);
@@ -517,6 +517,9 @@ sub _submit {
 
     # Now, we construct the request.
     if (@$data) {
+        # The request object expects "bytes", not strings
+        map { utf8::encode($_) } @$data;
+
         $req = POST($self->_uri($uri), $data, Content_Type => 'form-data');
     }
     else {
@@ -837,7 +840,8 @@ of type B<HTTP::Cookies> to use for credentials information.
 
 B<timeout> is the number of seconds HTTP client will wait for the
 server to respond.  Defaults to LWP::UserAgent's default timeout, which
-is 300 seconds.
+is 180 seconds (please check LWP::UserAgent's documentation for accurate
+timeout information).
 
 =item B<basic_auth_cb>
 
@@ -866,7 +870,8 @@ See B<basic_auth_cb> above.
 =item show (type => $type, id => $id)
 
 Return a reference to a hash with key-value pair specifying object C<$id>
-of type C<$type>.
+of type C<$type>. The keys are the names of RT's fields. Keys for custom
+fields are in the form of "CF.{CUST_FIELD_NAME}".
 
 =item edit (type => $type, id => $id, set => { status => 1 })
 

@@ -3,13 +3,13 @@ abstract: 'talk to RT installation using REST protocol.'
 author:
   - 'Original /usr/bin/rt was written by Abhijit Menon-Sen <ams@wiw.org>.  rt'
 build_requires:
-  ExtUtils::MakeMaker: 6.42
+  ExtUtils::MakeMaker: 6.36
   Test::Exception: 0
   Test::More: 0
 configure_requires:
-  ExtUtils::MakeMaker: 6.42
+  ExtUtils::MakeMaker: 0
 dynamic_config: 0
-generated_by: 'Module::Install version 0.97, CPAN::Meta::Converter version 2.112621'
+generated_by: 'ExtUtils::MakeMaker version 6.66, CPAN::Meta::Converter version 2.120921'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -17,10 +17,11 @@ meta-spec:
 name: RT-Client-REST
 no_index:
   directory:
-    - examples
-    - inc
     - t
+    - inc
 requires:
+  DateTime: 0
+  DateTime::Format::DateParse: 0
   Encode: 0
   Error: 0
   Exception::Class: 0
@@ -28,7 +29,5 @@ requires:
   HTTP::Request::Common: 0
   LWP: 0
   Params::Validate: 0
-resources:
-  license: http://dev.perl.org/licenses/
-  repository: http://rt-client-rest.googlecode.com/svn/trunk/
-version: 0.42
+  URI: 0
+version: 0.44
