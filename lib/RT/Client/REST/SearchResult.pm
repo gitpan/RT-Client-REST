@@ -1,4 +1,4 @@
-# $Id: SearchResult.pm 2 2007-12-23 02:16:25Z dtikhonov $
+# $Id$
 #
 # RT::Client::REST::SearchResult -- search results object.
 

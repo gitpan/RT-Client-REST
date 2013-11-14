@@ -1,4 +1,4 @@
-# $Id: Transaction.pm 57 2012-04-18 14:45:09Z bobtfish@bobtfish.net $
+# $Id$
 #
 # RT::Client::REST::Transaction -- transaction object representation.
 

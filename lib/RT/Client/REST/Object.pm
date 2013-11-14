@@ -1,4 +1,4 @@
-# $Id: Object.pm 56 2012-01-26 12:26:02Z bobtfish@bobtfish.net $
+# $Id$
 
 package RT::Client::REST::Object;
 

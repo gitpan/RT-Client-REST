@@ -4,7 +4,7 @@
       "Original /usr/bin/rt was written by Abhijit Menon-Sen <ams@wiw.org>.  rt"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "ExtUtils::MakeMaker version 6.66, CPAN::Meta::Converter version 2.120921",
+   "generated_by" : "Module::Install version 1.06, CPAN::Meta::Converter version 2.132140",
    "license" : [
       "perl_5"
    ],
@@ -15,8 +15,9 @@
    "name" : "RT-Client-REST",
    "no_index" : {
       "directory" : [
-         "t",
-         "inc"
+         "examples",
+         "inc",
+         "t"
       ]
    },
    "prereqs" : {
@@ -29,7 +30,7 @@
       },
       "configure" : {
          "requires" : {
-            "ExtUtils::MakeMaker" : "0"
+            "ExtUtils::MakeMaker" : "6.36"
          }
       },
       "runtime" : {
@@ -48,5 +49,13 @@
       }
    },
    "release_status" : "stable",
-   "version" : "0.44"
+   "resources" : {
+      "license" : [
+         "http://dev.perl.org/licenses/"
+      ],
+      "repository" : {
+         "url" : "https://github.com/RT-Client-REST/RT-Client-REST.git"
+      }
+   },
+   "version" : "0.45"
 }

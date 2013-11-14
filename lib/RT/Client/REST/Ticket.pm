@@ -1,4 +1,4 @@
-# $Id: Ticket.pm 60 2012-10-27 06:43:24Z pplusdomain@gmail.com $
+# $Id$
 #
 # RT::Client::REST::Ticket -- ticket object representation.
 

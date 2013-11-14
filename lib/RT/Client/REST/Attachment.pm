@@ -1,4 +1,4 @@
-# $Id: Attachment.pm 57 2012-04-18 14:45:09Z bobtfish@bobtfish.net $
+# $Id$
 #
 # RT::Client::REST::Attachment -- attachment object representation.
 

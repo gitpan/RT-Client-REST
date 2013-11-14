@@ -1,4 +1,4 @@
-# $Id: Exception.pm 30 2008-08-16 00:58:07Z dtikhonov $
+# $Id$
 # RT::Client::REST::Object::Exception
 
 package RT::Client::REST::Object::Exception;
