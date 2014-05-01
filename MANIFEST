@@ -48,7 +48,6 @@ MYMETA.json
 MYMETA.yml
 README
 t/01-use.t
-t/026-group.t
 t/10-core.t
 t/20-object.t
 t/21-user.t
@@ -56,8 +55,11 @@ t/22-ticket.t
 t/23-attachment.t
 t/24-transaction.t
 t/25-queue.t
+t/26-group.t
 t/35-db.t
 t/40-search.t
+t/50-forms.t
+t/60-with-rt.t
 t/80-timeout.t
 t/81-submit.t
 t/82-stringify.t
