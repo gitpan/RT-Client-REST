@@ -7,39 +7,23 @@ use warnings;
 
 use Test::More;
 
-use Error qw(:try);
-use IO::Socket;
+use IO::File;
+use IO::Pipe;
 use RT::Client::REST;
-use HTTP::Response;
 use File::Spec::Functions;
-use File::Temp qw(tempfile);
-use Data::Dumper;
 use Encode;
-
-plan( skip_all => 'This test fails on Windows -- skipping' ) if $^O eq 'MSWin32';
-
-plan( skip_all => 'This test fails on OpenBSD, see RT #95223')  
-    if $^O eq 'openbsd';
-
-use constant SAVE_BODIES => $ENV{'RELEASE_TESTING'};
+use HTTP::Response;
+use HTTP::Server::Simple;
 
 my $testfile = "test.png";
 my $testfile_path = catfile(t => $testfile);
 
-my $server = IO::Socket::INET->new(
-    Type => SOCK_STREAM,
-    Reuse => 1,
-    Listen => 10,
-) or die "Could not set up TCP server: $@";
-
-my $port = $server->sockport;
-
-my $testfile_content;
-{
-    open (my $fh, "<", $testfile_path) or die "Couldn't open $testfile_path $!";
-    $testfile_content = do { local $/; <$fh>; };
-    close $fh;
-}
+my $testfile_content = do {
+    my $fh = IO::File->new($testfile_path)
+	or die "Couldn't open $testfile_path $!";
+    local $/;
+    <$fh>;
+};
 
 my ($reply_header, $reply_body) = do {
     my $binary_string = $testfile_content;
@@ -67,60 +51,85 @@ EOF
     ("RT/4.0.7 200 Ok", $body);
 };
 
-if (SAVE_BODIES) {
-    my ($fh, $filename) = tempfile;
-    $fh->print($reply_body);
-    $fh->close;
-    diag("saved reply body to be sent to $filename");
-}
+my $http_payload = 
+    $reply_header                                       .
+    "\n\n"                                              .
+    $reply_body                                         .
+    "\n\n"						;
 
+my $http_reply =
+    "HTTP/1.1 200 OK\r\n"                               .
+    "Content-Type: text/plain; charset=utf-8\r\n\r\n"	.
+    $http_payload					;
+
+my $pipe = IO::Pipe->new;                           # Used to get port number
 my $pid = fork;
+die "cannot fork: $!" if not defined $pid;
 
-if ($pid > 0) {
-    plan tests => 4;
-    my $rt = RT::Client::REST->new(
-            server => "http://localhost:$port",
-            timeout => 2,
-    );
-
-    # avoid need ot login
-    $rt->basic_auth_cb(sub { return });
-    my $res = $rt->_submit("ticket/130/attachments/873");
-    ok($res->content eq $reply_body, "unparsed form came back ok");
-
-    if (SAVE_BODIES) {
-	my ($fh, $filename) = tempfile;
-	$fh->print($res->content);
-	$fh->close;
-	diag("saved returned content to $filename");
+if (0 == $pid) {                                    # Child
+    $pipe->writer;
+    {
+        package My::Web::Server;
+        use base qw(HTTP::Server::Simple::CGI);
+        sub handle_request {
+            print $http_reply;
+        }
+        # A hack to get HTTP::Server::Simple listen on ephemeral port.
+        # See RT#72987
+        sub after_setup_listener {
+            use Socket;
+            my $sock = getsockname HTTP::Server::Simple::HTTPDaemon;
+            my ($port) = (sockaddr_in($sock))[0];
+            $pipe->print("$port\n");
+            $pipe->close;
+        }
     }
+    my $server = My::Web::Server->new('00');
+    alarm 120;                                      # Just in case, don't hang people
+    $server->run;		                    # Run until killed
+    die "unreachable code";
+}
 
-    $res = $rt->get_attachment(parent_id => 130, id => 873, undecoded => 1);
+$pipe->reader;
+chomp(my $port = <$pipe>);
+#diag("set up web server on port $port");
+$pipe->close;
+
+unless ($port && $port =~ /^\d+$/) {
+    kill 9, $pid;
+    waitpid $pid, 0;
+    plan skip_all => "could not get port number from child, skipping all tests";
+}
+
+plan tests => 4;
+
+{
+    my $res = HTTP::Response->parse( $http_reply );
+    ok($res->content eq $http_payload,
+        "self-test: HTTP::Response gives back correct payload");
+}
+
+my $rt = RT::Client::REST->new(
+    server => "http://localhost:$port",
+    timeout => 2,
+);
+
+# avoid need ot login
+$rt->basic_auth_cb(sub { return });
+
+{
+    my $res = $rt->get_attachment(parent_id => 130, id => 873, undecoded => 1);
     ok($res->{Content} eq $testfile_content, "binary files match with undecoded option");
-
-    $res = $rt->get_attachment(parent_id => 130, id => 873, undecoded => 0);
-
-    ok($res->{Content} ne encode("latin1", $testfile_content), "binary files don't match when decoded to latin1");
-    ok($res->{Content} ne encode("utf-8", $testfile_content), "binary files don't match when decoded to utf8");
-    
-}
-elsif (defined($pid)) {
-    # serve two requests:
-    for (1..3) {
-        my $client = $server->accept;
-        # emulate the header
-        $client->write(
-            "HTTP/1.1 200 OK\r\n"                               .
-            "Content-Type: text/plain; charset=utf-8\r\n\r\n"   .
-            $reply_header                                       .
-            "\n\n"                                              .
-            $reply_body                                         .
-            "\n\n"
-        );
-        $client->close;
-    }
 }
 
-else {
-    die "Could not fork: $!";
+{
+    my $res = $rt->get_attachment(parent_id => 130, id => 873, undecoded => 0);
+    ok($res->{Content} ne encode("latin1", $testfile_content),
+        "binary files don't match when decoded to latin1");
+    ok($res->{Content} ne encode("utf-8", $testfile_content),
+        "binary files don't match when decoded to utf8");
 }
+
+kill 9, $pid;
+waitpid $pid, 0;
+exit;

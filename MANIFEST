@@ -20,10 +20,14 @@ examples/show_ticket.pl
 examples/show_transaction.pl
 examples/show_user.pl
 examples/take_ticket.pl
+inc/HTTP/Server/Simple.pm
+inc/HTTP/Server/Simple/CGI.pm
+inc/HTTP/Server/Simple/CGI/Environment.pm
 inc/Module/Install.pm
 inc/Module/Install/Base.pm
 inc/Module/Install/Can.pm
 inc/Module/Install/Fetch.pm
+inc/Module/Install/Include.pm
 inc/Module/Install/Makefile.pm
 inc/Module/Install/Metadata.pm
 inc/Module/Install/Win32.pm
